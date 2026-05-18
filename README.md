@@ -9,7 +9,8 @@ Data comes from the same Firestore catalog managed in [Business Dashboard API](h
 | Environment | Marketplace | Example store |
 |-------------|-------------|---------------|
 | Local dev | http://localhost:5179/ | http://localhost:5179/napoletana-nostra |
-| Production | https://jon-sport-shop.web.app/ | https://jon-sport-shop.web.app/napoletana-nostra |
+| GitHub Pages | https://kresha325.github.io/Binisoft-marketplace/ | https://kresha325.github.io/Binisoft-marketplace/napoletana-nostra |
+| Firebase (optional) | https://jon-sport-shop.web.app/ | https://jon-sport-shop.web.app/napoletana-nostra |
 
 ## Setup
 
@@ -35,15 +36,27 @@ npm run dev
 
 Do **not** set `VITE_BUSINESS_SLUG` unless you want legacy single-store mode on `/` (`VITE_SINGLE_STORE_DEV=true`).
 
-## Deploy (Firebase Hosting)
+## Deploy (GitHub Pages)
 
-From a machine with Firebase CLI and the main project checked out:
+1. Repo → **Settings** → **Pages** → **Build and deployment**: **GitHub Actions** (not “Deploy from branch”).
+2. Push to `main` — workflow **Deploy GitHub Pages** publishes `dist/`.
+
+Local preview of the Pages build:
+
+```bash
+npm run build:pages
+npm run preview:pages
+```
+
+API calls go directly to Cloud Functions (`VITE_API_BASE_URL` at build time). Ensure `publicApi` allows CORS from `https://kresha325.github.io`.
+
+## Deploy (Firebase Hosting, optional)
 
 ```bash
 npm run deploy:firebase
 ```
 
-This builds and copies `dist/` into `Business Dashboard API/hosting-shop`, then deploys `hosting:shop` on project `jon-sport`.
+Builds and copies `dist/` into `Business Dashboard API/hosting-shop`, then deploys `hosting:shop` on project `jon-sport`.
 
 ## API (platform)
 

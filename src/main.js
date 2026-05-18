@@ -22,7 +22,7 @@ import {
   setCatalogMeta,
   setShopLocale,
 } from './locale.js';
-import { isStorePath, shopPathFor } from './slug.js';
+import { isStorePath, marketplaceHomePath, shopPathFor } from './slug.js';
 import {
   addToCart,
   cartBusinessSlugs,
@@ -294,7 +294,7 @@ function initSiteNav() {
     e.preventDefault();
     closeMobileNav();
     if (isMarketplaceMode()) {
-      window.location.href = '/';
+      window.location.href = marketplaceHomePath();
       return;
     }
     setShopView('home');
@@ -892,7 +892,7 @@ async function renderMarketplaceHome() {
   document.querySelector('.site-nav')?.classList.add('hidden');
   displayShopName('Binisoft Marketplace');
   if (footerName) footerName.textContent = 'Binisoft Marketplace';
-  if (brandLink) brandLink.href = '/';
+  if (brandLink) brandLink.href = marketplaceHomePath();
 
   await loadMarketplace({
     catalogEl,

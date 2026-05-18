@@ -2,11 +2,13 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  const base = process.env.BASE_PATH || env.BASE_PATH || '/';
   const functionsTarget =
     env.VITE_FUNCTIONS_PROXY ||
     'https://us-central1-jon-sport.cloudfunctions.net';
 
   return {
+    base,
     server: {
       port: Number(env.PORT) || 5179,
       open: true,

@@ -12,9 +12,21 @@ export function normalizeSlug(raw) {
     .replace(/^-|-$/g, '');
 }
 
+/** Strip Vite base (e.g. /Binisoft-marketplace) for GitHub Pages project sites. */
+function appPathname() {
+  const base = import.meta.env.BASE_URL || '/';
+  let path = window.location.pathname;
+  if (base !== '/') {
+    const prefix = base.replace(/\/$/, '');
+    if (path === prefix) path = '/';
+    else if (path.startsWith(`${prefix}/`)) path = path.slice(prefix.length) || '/';
+  }
+  return path;
+}
+
 /** First path segment, e.g. /napoletana-nostra → napoletana-nostra */
 export function getPathSegment() {
-  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const path = appPathname().replace(/\/+$/, '') || '/';
   const parts = path.split('/').filter(Boolean);
   return parts[0] || null;
 }
@@ -42,10 +54,17 @@ export function isStorePath() {
   return Boolean(segment && isValidSlug(segment));
 }
 
+/** Marketplace root (respects BASE_URL on GitHub Pages). */
+export function marketplaceHomePath() {
+  const base = import.meta.env.BASE_URL || '/';
+  return base.endsWith('/') ? base : `${base}/`;
+}
+
 export function shopPathFor(slug) {
   const s = normalizeSlug(slug);
-  if (!isValidSlug(s)) return '/';
-  return `/${s}`;
+  if (!isValidSlug(s)) return marketplaceHomePath();
+  const root = marketplaceHomePath();
+  return `${root}${s}`;
 }
 
 export function shopAbsoluteUrl(slug) {

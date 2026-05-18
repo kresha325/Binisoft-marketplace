@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:pages": "BASE_PATH=/Binisoft-marketplace/ VITE_API_BASE_URL=https://us-central1-jon-sport.cloudfunctions.net/publicApi npm run build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
+    "preview:pages": "BASE_PATH=/Binisoft-marketplace/ npm run preview",
     "deploy:firebase": "npm run build && rm -rf \"../Business Dashboard API/hosting-shop\" && cp -R dist \"../Business Dashboard API/hosting-shop\" && cd \"../Business Dashboard API\" && firebase deploy --only hosting:shop"
   },
   "devDependencies": {
