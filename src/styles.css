@@ -69,11 +69,23 @@ body.nav-open {
   flex-shrink: 0;
 }
 
+.brand-logo {
+  display: block;
+  height: 32px;
+  width: auto;
+  max-width: min(120px, 36vw);
+  object-fit: contain;
+  object-position: left center;
+  flex-shrink: 0;
+}
+
 .brand-name {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .site-nav {
