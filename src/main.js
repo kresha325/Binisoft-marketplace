@@ -891,8 +891,7 @@ async function renderMarketplaceHome() {
   document.querySelector('.catalog-head')?.classList.add('hidden');
   document.getElementById('hero')?.classList.add('hidden');
   document.querySelector('.site-nav')?.classList.add('hidden');
-  displayShopName('Binisoft Marketplace');
-  if (footerName) footerName.textContent = 'Binisoft Marketplace';
+  displayShopName('Marketplace');
   if (brandLink) brandLink.href = marketplaceHomePath();
 
   await loadMarketplace({
