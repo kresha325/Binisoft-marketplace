@@ -1,0 +1,16 @@
+{
+  "name": "binisoft-marketplace",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Binisoft public marketplace & per-business storefronts (Vite)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy:firebase": "npm run build && rm -rf \"../Business Dashboard API/hosting-shop\" && cp -R dist \"../Business Dashboard API/hosting-shop\" && cd \"../Business Dashboard API\" && firebase deploy --only hosting:shop"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}

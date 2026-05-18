@@ -1,0 +1,47 @@
+# Manual / API-triggered deploy of one business storefront to Netlify.
+# Secrets: NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID (optional per-site later)
+name: Deploy business site
+
+on:
+  workflow_dispatch:
+    inputs:
+      business_slug:
+        description: 'Business URL slug'
+        required: true
+        type: string
+      api_key:
+        description: 'Optional order API key (masked in logs)'
+        required: false
+        type: string
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build storefront
+        env:
+          VITE_BUSINESS_SLUG: ${{ inputs.business_slug }}
+          VITE_API_BASE_URL: https://us-central1-jon-sport.cloudfunctions.net/publicApi
+          VITE_API_KEY: ${{ inputs.api_key }}
+        run: npm run build
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './dist'
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: 'Deploy ${{ inputs.business_slug }}'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 5
