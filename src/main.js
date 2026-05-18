@@ -105,6 +105,7 @@ function displayShopName(name) {
   const text = String(name || 'Shop').trim();
   shopName.textContent = text;
   if (footerName) footerName.textContent = text;
+  if (brandLink) brandLink.setAttribute('aria-label', `${text} — Kreu`);
 }
 
 function setHeroVisual(logoUrl) {

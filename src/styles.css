@@ -69,16 +69,13 @@ body.nav-open {
   flex-shrink: 0;
 }
 
-.brand-icon {
-  display: flex;
-  color: var(--yellow);
-}
-
-.brand-name {
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.brand-logo {
+  display: block;
+  height: 36px;
+  width: auto;
+  max-width: min(148px, 42vw);
+  object-fit: contain;
+  object-position: left center;
 }
 
 .site-nav {
