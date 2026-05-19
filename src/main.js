@@ -71,6 +71,12 @@ import {
   scrollToStoreView,
   STORE_VIEW_SECTIONS,
 } from './storeUx.js';
+import {
+  checkoutConfigForCart,
+  isCartEnabledForSlug,
+  normalizeShopCheckout,
+  registerShopCheckout,
+} from './shopCheckout.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -127,8 +133,14 @@ const storeBottomNav = $('#store-bottom-nav');
 const bottomCartBtn = $('#bottom-cart');
 const bottomCartCount = $('#bottom-cart-count');
 const cartBackdrop = $('#cart-backdrop');
+const cartToggleBtn = $('#cart-toggle');
+const checkoutFieldName = $('#checkout-field-name');
+const checkoutFieldAddress = $('#checkout-field-address');
+const checkoutFieldNotes = $('#checkout-field-notes');
+const checkoutFieldPhone = $('#checkout-field-phone');
 
 let storeBusinessProfile = null;
+let storeCheckoutConfig = null;
 let storeSectionMap = null;
 
 let products = [];
@@ -555,6 +567,65 @@ function addOfferProductToCart(productId, salePrice) {
 
 function phoneDigits(phone) {
   return String(phone || '').replace(/\D/g, '');
+}
+
+function currentStoreSlug() {
+  return getSlug() || storeBusinessProfile?.slug || '';
+}
+
+function isShopCartEnabled(slug = currentStoreSlug()) {
+  if (!slug) return true;
+  if (storeCheckoutConfig && slug === storeBusinessProfile?.slug) {
+    return storeCheckoutConfig.cartEnabled;
+  }
+  return isCartEnabledForSlug(slug);
+}
+
+function canCheckoutNow() {
+  return canPlaceOrders() && isShopCartEnabled();
+}
+
+function setCheckoutField(wrap, enabled, input, required) {
+  if (!wrap) return;
+  wrap.classList.toggle('hidden', !enabled);
+  if (input) {
+    input.required = !!required;
+    if (!enabled) input.value = '';
+  }
+}
+
+function applyCheckoutFieldVisibility(cart = loadCart()) {
+  const cfg = cart.length
+    ? checkoutConfigForCart(cart, currentStoreSlug())
+    : storeCheckoutConfig || normalizeShopCheckout(storeBusinessProfile || {});
+
+  setCheckoutField(checkoutFieldName, cfg.customerName, customerNameInput, cfg.customerName);
+  setCheckoutField(
+    checkoutFieldAddress,
+    cfg.deliveryAddress,
+    customerAddressInput,
+    cfg.deliveryAddress,
+  );
+  setCheckoutField(checkoutFieldNotes, cfg.orderNotes, orderNotes, false);
+  setCheckoutField(checkoutFieldPhone, cfg.phone, customerPhoneInput, false);
+
+  const formVisible =
+    cfg.customerName || cfg.deliveryAddress || cfg.orderNotes || cfg.phone;
+  checkoutForm?.classList.toggle('hidden', !formVisible);
+}
+
+function applyCartChrome() {
+  const storeSlug = currentStoreSlug();
+  const enabled = isStoreMode() && storeSlug ? isShopCartEnabled(storeSlug) : true;
+  cartToggleBtn?.classList.toggle('hidden', !enabled);
+  bottomCartBtn?.classList.toggle('hidden', !enabled);
+  document.body.classList.toggle('shop-cart-disabled', isStoreMode() && !enabled);
+  if (!enabled) closeCart();
+}
+
+function refreshShopCheckoutUi(cart = loadCart()) {
+  applyCartChrome();
+  applyCheckoutFieldVisibility(cart);
 }
 
 function getPending() {
@@ -1003,7 +1074,11 @@ function renderOffers() {
               <strong>${escapeHtml(item.productName)}</strong>
               ${offerItemPriceHtml(item)}
             </div>
-            <button type="button" class="add-btn add-btn--sm" data-offer-add="${item.productId}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>Shto</button>
+            ${
+              isShopCartEnabled(getSlug())
+                ? `<button type="button" class="add-btn add-btn--sm" data-offer-add="${item.productId}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>Shto</button>`
+                : ''
+            }
           </div>`;
                 })
                 .join('')
@@ -1159,7 +1234,11 @@ function renderCatalog() {
         ${variantSelectHtml(p)}
         ${priceHtml(p.price, p.originalPrice, p.onOffer)}
       </div>
-      <button type="button" class="add-btn" data-add="${p.id}" ${hasActivePending() ? 'disabled' : ''}>Shto në shportë</button>
+      ${
+        isShopCartEnabled(p.businessSlug || getSlug())
+          ? `<button type="button" class="add-btn" data-add="${p.id}" ${hasActivePending() ? 'disabled' : ''}>Shto në shportë</button>`
+          : ''
+      }
     </article>
   `,
     )
@@ -1204,7 +1283,8 @@ function renderCart(cart = null) {
   const locked = hasActivePending();
 
   updateCartBadge(count);
-  setSendButtonsEnabled(count > 0 && canPlaceOrders() && !locked);
+  setSendButtonsEnabled(count > 0 && canCheckoutNow() && !locked);
+  refreshShopCheckoutUi(displayCart);
 
   renderPendingBanner();
 
@@ -1395,6 +1475,7 @@ function initThemeToggle() {
 async function renderMarketplaceHome() {
   document.body.dataset.mode = 'marketplace';
   storeBusinessProfile = null;
+  storeCheckoutConfig = null;
   clearProStoreTheme();
   hideThemeToggle();
   heroTrust?.classList.add('hidden');
@@ -1567,8 +1648,11 @@ async function loadShop() {
   const routing = applySiteConfig(business);
   renderContactCards(business);
   storeBusinessProfile = business;
+  registerShopCheckout(business);
+  storeCheckoutConfig = normalizeShopCheckout(business);
   storeSectionMap = routing?.sectionMap || null;
   refreshStoreCtas();
+  refreshShopCheckoutUi();
   initThemeToggle();
   renderHeroStats(business);
   if (routing?.shopViews) SHOP_VIEWS = routing.shopViews;
@@ -1610,16 +1694,24 @@ function readCheckoutFields() {
   };
 }
 
-function validateCheckout({ customer, address }) {
-  if (!customer.name || customer.name.length < 2) {
-    return 'Shkruani emrin (min. 2 shkronja).';
+function validateCheckout(checkout, cart = loadCart()) {
+  const cfg = checkoutConfigForCart(cart, currentStoreSlug());
+  const { customer, address } = checkout;
+  if (cfg.customerName) {
+    if (!customer.name || customer.name.length < 2) {
+      return 'Shkruani emrin (min. 2 shkronja).';
+    }
   }
-  if (!address || address.length < 5) {
-    return 'Shkruani adresën e plotë të dorëzimit.';
+  if (cfg.deliveryAddress) {
+    if (!address || address.length < 5) {
+      return 'Shkruani adresën e plotë të dorëzimit.';
+    }
   }
-  const digits = phoneDigits(customer.phone);
-  if (customer.phone && digits.length > 0 && digits.length < 8) {
-    return 'Numri i telefonit është i pavlefshëm (min. 8 shifra) ose lëreni bosh.';
+  if (cfg.phone) {
+    const digits = phoneDigits(customer.phone);
+    if (customer.phone && digits.length > 0 && digits.length < 8) {
+      return 'Numri i telefonit është i pavlefshëm (min. 8 shifra) ose lëreni bosh.';
+    }
   }
   return null;
 }
@@ -1646,10 +1738,10 @@ async function sendOrder(channel) {
   }
 
   const cart = loadCart();
-  if (!cart.length || !canPlaceOrders()) return;
+  if (!cart.length || !canCheckoutNow()) return;
 
   const checkout = readCheckoutFields();
-  const customerError = validateCheckout(checkout);
+  const customerError = validateCheckout(checkout, cart);
   if (customerError) {
     checkoutError.textContent = customerError;
     checkoutError.classList.remove('hidden');
@@ -1738,7 +1830,7 @@ async function sendOrder(channel) {
     checkoutError.classList.remove('hidden');
   } finally {
     setSendButtonsLoading(false);
-    setSendButtonsEnabled(cartCount(loadCart()) > 0 && canPlaceOrders() && !hasActivePending());
+    setSendButtonsEnabled(cartCount(loadCart()) > 0 && canCheckoutNow() && !hasActivePending());
   }
 }
 

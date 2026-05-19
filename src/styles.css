@@ -1816,6 +1816,27 @@ body.gallery-open {
   resize: none;
 }
 
+.checkout-field.hidden {
+  display: none !important;
+}
+
+.checkout-form.hidden {
+  display: none !important;
+}
+
+body.shop-cart-disabled .add-btn,
+body.shop-cart-disabled [data-offer-add] {
+  display: none !important;
+}
+
+.cart-icon-btn.hidden {
+  display: none !important;
+}
+
+.store-bottom-nav__btn.hidden {
+  display: none !important;
+}
+
 .order-preview.hidden {
   display: none !important;
 }

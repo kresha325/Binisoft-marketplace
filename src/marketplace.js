@@ -1,4 +1,5 @@
 import { fetchMarketplace } from './catalogApi.js';
+import { registerShopCheckout } from './shopCheckout.js';
 import { shopPathFor } from './slug.js';
 
 function escapeHtml(s) {
@@ -225,6 +226,7 @@ export async function loadMarketplace({ catalogEl, setCatalogMeta, applyDocument
   try {
     const data = await fetchMarketplace();
     marketplaceData = data;
+    (data.businesses || []).forEach((b) => registerShopCheckout(b));
     if (data.meta) setCatalogMeta(data.meta);
     applyDocumentSeo({
       title: 'Binisoft Marketplace — Dyqane & produkte',
