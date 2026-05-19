@@ -336,9 +336,14 @@ function setSectionHead(sectionEl, cfg, fallbackTitle) {
   }
 }
 
-/** Only profile «Rreth nesh (bio)» — not hero slogan (description). */
-function resolveAboutBio(business) {
-  return String(business?.aboutBio || '').trim();
+/**
+ * «Rreth nesh» body: profile bio first, then optional site-editor text on the about section.
+ * Never use hero slogan (business.description).
+ */
+function resolveAboutBio(business, map) {
+  const profileBio = String(business?.aboutBio ?? '').trim();
+  if (profileBio) return profileBio;
+  return String(map?.get('about')?.description ?? '').trim();
 }
 
 function applyAboutContent(business, map) {
@@ -347,7 +352,7 @@ function applyAboutContent(business, map) {
   if (!aboutText) return;
   const dup = document.getElementById('about')?.querySelector('#about-desc');
   dup?.remove();
-  const bio = resolveAboutBio(business);
+  const bio = resolveAboutBio(business, map);
   const showSection = isEnabled(map, 'about');
   if (bio && showSection) {
     aboutText.textContent = bio;
