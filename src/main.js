@@ -256,13 +256,14 @@ function renderContactCards(business) {
     const card = document.createElement('a');
     card.className = `contact-btn contact-btn--${item.kind}`;
     if (item.href) card.href = item.href;
-    if (item.title) card.title = item.title;
+    const hint = item.detail ? `${item.title} — ${item.detail}` : item.title;
+    if (hint) card.title = hint;
     if (item.kind === 'whatsapp') {
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
     }
     const icon = CONTACT_BTN_ICONS[item.kind] || '';
-    card.innerHTML = `<span class="contact-btn__icon">${icon}</span><span class="contact-btn__body"><span class="contact-btn__label">${escapeHtml(item.label)}</span><span class="contact-btn__action">${escapeHtml(item.action)}</span>${item.detail ? `<span class="contact-btn__detail">${escapeHtml(item.detail)}</span>` : ''}</span>`;
+    card.innerHTML = `<span class="contact-btn__icon">${icon}</span><span class="contact-btn__body"><span class="contact-btn__label">${escapeHtml(item.label)}</span><span class="contact-btn__action">${escapeHtml(item.action)}</span></span>`;
     contactCards.appendChild(card);
   }
   contactCards.classList.remove('hidden');

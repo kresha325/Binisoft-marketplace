@@ -1069,11 +1069,13 @@ body[data-mode='store'] .about-section .info-body {
 }
 
 .contact-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: stretch;
   gap: 12px;
   margin-top: 20px;
-  max-width: 720px;
+  width: 100%;
 }
 
 .contact-cards.hidden {
@@ -1082,21 +1084,26 @@ body[data-mode='store'] .about-section .info-body {
 
 .contact-btn {
   display: flex;
+  flex: 1 1 0;
+  min-width: min(100%, 160px);
   align-items: center;
+  justify-content: flex-start;
   gap: 14px;
   padding: 16px 18px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--navy) 45%, var(--surface));
   border: 1px solid var(--border);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
   cursor: pointer;
   min-height: 72px;
 }
 
 .contact-btn:hover {
-  border-color: color-mix(in srgb, var(--yellow) 45%, var(--border));
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
@@ -1109,8 +1116,6 @@ body[data-mode='store'] .about-section .info-body {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--yellow) 16%, transparent);
-  color: var(--yellow);
 }
 
 .contact-btn__icon svg {
@@ -1140,43 +1145,78 @@ body[data-mode='store'] .about-section .info-body {
   line-height: 1.2;
 }
 
-.contact-btn__detail {
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: var(--muted);
-  word-break: break-word;
+/* Phone — jeshile thirrje */
+.contact-btn--phone {
+  --contact-accent: #16a34a;
+  --contact-accent-strong: #15803d;
+  background: color-mix(in srgb, var(--contact-accent) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--contact-accent) 42%, var(--border));
 }
 
 .contact-btn--phone .contact-btn__icon {
-  background: color-mix(in srgb, var(--yellow) 20%, transparent);
+  background: color-mix(in srgb, var(--contact-accent) 22%, transparent);
+  color: var(--contact-accent);
+}
+
+.contact-btn--phone .contact-btn__action {
+  color: var(--contact-accent-strong);
+}
+
+.contact-btn--phone:hover {
+  border-color: var(--contact-accent);
+  background: color-mix(in srgb, var(--contact-accent) 22%, var(--surface));
+}
+
+/* Email — blu */
+.contact-btn--email {
+  --contact-accent: #2563eb;
+  --contact-accent-strong: #1d4ed8;
+  background: color-mix(in srgb, var(--contact-accent) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--contact-accent) 42%, var(--border));
 }
 
 .contact-btn--email .contact-btn__icon {
-  background: color-mix(in srgb, #3b82f6 18%, transparent);
-  color: #2563eb;
+  background: color-mix(in srgb, var(--contact-accent) 22%, transparent);
+  color: var(--contact-accent);
+}
+
+.contact-btn--email .contact-btn__action {
+  color: var(--contact-accent-strong);
 }
 
 .contact-btn--email:hover {
-  border-color: color-mix(in srgb, #3b82f6 40%, var(--border));
+  border-color: var(--contact-accent);
+  background: color-mix(in srgb, var(--contact-accent) 22%, var(--surface));
 }
 
+/* WhatsApp — gjelbër */
 .contact-btn--whatsapp {
-  background: color-mix(in srgb, #25d366 14%, var(--surface));
-  border-color: color-mix(in srgb, #25d366 40%, var(--border));
+  --contact-accent: #25d366;
+  --contact-accent-strong: #128c7e;
+  background: color-mix(in srgb, var(--contact-accent) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--contact-accent) 42%, var(--border));
 }
 
 .contact-btn--whatsapp .contact-btn__icon {
-  background: color-mix(in srgb, #25d366 22%, transparent);
-  color: #128c7e;
+  background: color-mix(in srgb, var(--contact-accent) 22%, transparent);
+  color: var(--contact-accent-strong);
 }
 
 .contact-btn--whatsapp .contact-btn__action {
-  color: #128c7e;
+  color: var(--contact-accent-strong);
 }
 
 .contact-btn--whatsapp:hover {
-  border-color: #25d366;
-  background: color-mix(in srgb, #25d366 22%, var(--surface));
+  border-color: var(--contact-accent);
+  background: color-mix(in srgb, var(--contact-accent) 22%, var(--surface));
+}
+
+body.store-pro--dark .contact-btn--phone .contact-btn__action {
+  color: #4ade80;
+}
+
+body.store-pro--dark .contact-btn--email .contact-btn__action {
+  color: #60a5fa;
 }
 
 body.store-pro--dark .contact-btn--whatsapp .contact-btn__action {
