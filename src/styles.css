@@ -2543,6 +2543,8 @@ body[data-mode='marketplace'] .site-header {
 
 .market-grid {
   margin-top: 0;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
 }
 
 .market-store-card {
@@ -2650,11 +2652,6 @@ body[data-mode='marketplace'] .site-header {
 
 .market-store-card:hover .market-store-card__cta {
   text-decoration: underline;
-}
-
-.market-grid {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
 }
 
 .market-card-desc {
