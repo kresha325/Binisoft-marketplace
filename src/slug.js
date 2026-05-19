@@ -17,6 +17,7 @@ const RESERVED_SEGMENTS = new Set([
   'favicon.ico',
   'favicon.svg',
   'binisoft-logo.png',
+  'app-icon.png',
 ]);
 
 export function normalizeSlug(raw) {

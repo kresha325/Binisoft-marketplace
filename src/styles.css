@@ -1062,7 +1062,7 @@ body[data-mode='store'] .about-section .info-body {
 
 .contact-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
   margin-top: 20px;
   max-width: 720px;
@@ -1072,55 +1072,107 @@ body[data-mode='store'] .about-section .info-body {
   display: none;
 }
 
-.contact-card {
+.contact-btn {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 14px;
   padding: 16px 18px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--navy) 50%, var(--surface));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--navy) 45%, var(--surface));
   border: 1px solid var(--border);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s, transform 0.15s;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  min-height: 72px;
 }
 
-a.contact-card:hover {
-  border-color: color-mix(in srgb, var(--yellow) 40%, var(--border));
-  transform: translateY(-1px);
+.contact-btn:hover {
+  border-color: color-mix(in srgb, var(--yellow) 45%, var(--border));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
-a.contact-card--whatsapp {
-  background: color-mix(in srgb, #25d366 18%, var(--surface));
-  border-color: color-mix(in srgb, #25d366 45%, var(--border));
+.contact-btn__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--yellow) 16%, transparent);
+  color: var(--yellow);
 }
 
-a.contact-card--whatsapp:hover {
-  border-color: #25d366;
-  background: color-mix(in srgb, #25d366 28%, var(--surface));
+.contact-btn__icon svg {
+  width: 22px;
+  height: 22px;
 }
 
-a.contact-card--whatsapp .contact-card__value {
-  color: #128c7e;
+.contact-btn__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-body.store-pro--dark a.contact-card--whatsapp .contact-card__value {
-  color: #5de89a;
-}
-
-.contact-card__label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+.contact-btn__label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
 }
 
-.contact-card__value {
-  font-size: 0.95rem;
-  font-weight: 600;
+.contact-btn__action {
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--text);
+  line-height: 1.2;
+}
+
+.contact-btn__detail {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
   word-break: break-word;
+}
+
+.contact-btn--phone .contact-btn__icon {
+  background: color-mix(in srgb, var(--yellow) 20%, transparent);
+}
+
+.contact-btn--email .contact-btn__icon {
+  background: color-mix(in srgb, #3b82f6 18%, transparent);
+  color: #2563eb;
+}
+
+.contact-btn--email:hover {
+  border-color: color-mix(in srgb, #3b82f6 40%, var(--border));
+}
+
+.contact-btn--whatsapp {
+  background: color-mix(in srgb, #25d366 14%, var(--surface));
+  border-color: color-mix(in srgb, #25d366 40%, var(--border));
+}
+
+.contact-btn--whatsapp .contact-btn__icon {
+  background: color-mix(in srgb, #25d366 22%, transparent);
+  color: #128c7e;
+}
+
+.contact-btn--whatsapp .contact-btn__action {
+  color: #128c7e;
+}
+
+.contact-btn--whatsapp:hover {
+  border-color: #25d366;
+  background: color-mix(in srgb, #25d366 22%, var(--surface));
+}
+
+body.store-pro--dark .contact-btn--whatsapp .contact-btn__action {
+  color: #5de89a;
 }
 
 .contact-wa {
@@ -1293,6 +1345,10 @@ body.store-pro--dark a.contact-card--whatsapp .contact-card__value {
   }
 
   .site-footer__col--powered {
+    align-items: center;
+  }
+
+  .footer-powered {
     align-items: center;
   }
 }
@@ -1838,21 +1894,39 @@ code {
 }
 
 .footer-powered {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
   margin: 0;
-  font-size: 0.75rem;
-  opacity: 0.65;
-  max-width: 12rem;
-  line-height: 1.45;
-}
-
-.footer-powered a {
-  color: var(--yellow);
   text-decoration: none;
-  font-weight: 600;
+  color: var(--muted);
+  opacity: 0.85;
+  transition: opacity 0.15s;
 }
 
-.footer-powered a:hover {
-  text-decoration: underline;
+.footer-powered:hover {
+  opacity: 1;
+}
+
+.footer-powered__text {
+  font-size: 0.72rem;
+  line-height: 1.3;
+  text-transform: lowercase;
+}
+
+.footer-powered__icon {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  object-fit: cover;
+  object-position: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.footer-powered:hover .footer-powered__icon {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
 }
 
 .footer-line {
