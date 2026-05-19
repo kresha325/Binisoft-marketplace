@@ -1062,9 +1062,10 @@ body[data-mode='store'] .about-section .info-body {
 
 .contact-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-top: 20px;
+  max-width: 720px;
 }
 
 .contact-cards.hidden {
@@ -1087,6 +1088,24 @@ body[data-mode='store'] .about-section .info-body {
 a.contact-card:hover {
   border-color: color-mix(in srgb, var(--yellow) 40%, var(--border));
   transform: translateY(-1px);
+}
+
+a.contact-card--whatsapp {
+  background: color-mix(in srgb, #25d366 18%, var(--surface));
+  border-color: color-mix(in srgb, #25d366 45%, var(--border));
+}
+
+a.contact-card--whatsapp:hover {
+  border-color: #25d366;
+  background: color-mix(in srgb, #25d366 28%, var(--surface));
+}
+
+a.contact-card--whatsapp .contact-card__value {
+  color: #128c7e;
+}
+
+body.store-pro--dark a.contact-card--whatsapp .contact-card__value {
+  color: #5de89a;
 }
 
 .contact-card__label {

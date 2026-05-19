@@ -182,59 +182,69 @@ function renderHeroStats(business) {
   heroStats.classList.remove('hidden');
 }
 
+function contactWaLabelFromBusiness(business) {
+  const sections = business?.siteConfig?.sections;
+  if (Array.isArray(sections)) {
+    const contact = sections.find((s) => s.id === 'contact');
+    if (contact?.ctaLabel) return contact.ctaLabel;
+  }
+  return 'WhatsApp';
+}
+
 function renderContactCards(business) {
   if (!contactCards) return;
   contactCards.replaceChildren();
-  const loc = formatBusinessLocation(business);
+  contactWa?.classList.add('hidden');
+
   const phone = (business?.orderPhone || '').trim();
-  const website = (business?.website || '').trim();
+  const email = (business?.contactEmail || '').trim();
   const items = [];
-  if (loc) {
-    const mapsHref = resolveGoogleMapsOpenUrl(business, loc);
-    items.push({
-      label: 'Vendndodhja',
-      value: loc,
-      href: mapsHref || null,
-      mapsLink: Boolean(mapsHref),
-    });
-  }
-  const hours = String(business?.openingHours || '').trim();
-  if (hours) {
-    items.push({ label: 'Orari', value: hours, href: null });
-  }
+
   if (phone) {
     const digits = phoneDigits(phone);
     items.push({
       label: 'Telefoni',
       value: phone,
       href: digits ? `tel:+${digits}` : null,
+      kind: 'phone',
+      title: 'Thirr tani',
     });
   }
-  if (website) {
-    const href = website.startsWith('http') ? website : `https://${website}`;
+
+  if (email) {
     items.push({
-      label: 'Faqja web',
-      value: website.replace(/^https?:\/\//, ''),
-      href,
+      label: 'Email',
+      value: email,
+      href: `mailto:${encodeURIComponent(email)}`,
+      kind: 'email',
+      title: 'Dërgo email',
     });
+  }
+
+  if (phone) {
+    const digits = phoneDigits(phone);
+    if (digits) {
+      items.push({
+        label: 'WhatsApp',
+        value: contactWaLabelFromBusiness(business),
+        href: `https://wa.me/${digits}`,
+        kind: 'whatsapp',
+        title: 'Hap WhatsApp',
+      });
+    }
   }
   if (!items.length) {
     contactCards.classList.add('hidden');
     return;
   }
   for (const item of items) {
-    const card = document.createElement(item.href ? 'a' : 'div');
-    card.className = 'contact-card';
-    if (item.href) {
-      card.href = item.href;
-      if (item.href.startsWith('http')) {
-        card.target = '_blank';
-        card.rel = 'noopener noreferrer';
-      }
-      if (item.mapsLink) {
-        card.classList.add('location-action');
-        card.title = 'Hap në Google Maps';
-      }
+    const card = document.createElement('a');
+    card.className = `contact-card contact-card--${item.kind}`;
+    if (item.href) card.href = item.href;
+    if (item.title) card.title = item.title;
+    if (item.kind === 'whatsapp' || item.kind === 'email') {
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
     }
     card.innerHTML = `<span class="contact-card__label">${escapeHtml(item.label)}</span><span class="contact-card__value">${escapeHtml(item.value)}</span>`;
     contactCards.appendChild(card);
@@ -338,15 +348,6 @@ function updateShopPresentation(business) {
 
   renderContactCards(business);
   renderHeroStats(business);
-
-  const orderPhone = business?.orderPhone || config.orderPhone || '';
-  const digits = phoneDigits(orderPhone);
-  if (contactWa && digits) {
-    contactWa.href = `https://wa.me/${digits}`;
-    contactWa.classList.remove('hidden');
-  } else if (contactWa) {
-    contactWa.classList.add('hidden');
-  }
 }
 
 let SHOP_VIEWS = {
@@ -1451,6 +1452,7 @@ async function loadShop() {
   renderLangSwitcher();
   applyShopSeo(business);
   const routing = applySiteConfig(business);
+  renderContactCards(business);
   storeBusinessProfile = business;
   storeSectionMap = routing?.sectionMap || null;
   refreshStoreCtas();
