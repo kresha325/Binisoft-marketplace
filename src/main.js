@@ -215,7 +215,7 @@ function renderContactCards(business) {
     items.push({
       label: 'Email',
       value: email,
-      href: `mailto:${encodeURIComponent(email)}`,
+      href: `mailto:${email}`,
       kind: 'email',
       title: 'Dërgo email',
     });
