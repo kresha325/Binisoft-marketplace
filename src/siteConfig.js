@@ -336,13 +336,9 @@ function setSectionHead(sectionEl, cfg, fallbackTitle) {
   }
 }
 
-/** Profile bio first; then hero description; then legacy siteConfig about text. */
-function resolveAboutBio(business, map) {
-  const profileBio = String(business?.aboutBio || '').trim();
-  if (profileBio) return profileBio;
-  const tagline = String(business?.description || '').trim();
-  if (tagline) return tagline;
-  return String(map.get('about')?.description || '').trim();
+/** Only profile «Rreth nesh (bio)» — not hero slogan (description). */
+function resolveAboutBio(business) {
+  return String(business?.aboutBio || '').trim();
 }
 
 function applyAboutContent(business, map) {
@@ -351,7 +347,7 @@ function applyAboutContent(business, map) {
   if (!aboutText) return;
   const dup = document.getElementById('about')?.querySelector('#about-desc');
   dup?.remove();
-  const bio = resolveAboutBio(business, map);
+  const bio = resolveAboutBio(business);
   const showSection = isEnabled(map, 'about');
   if (bio && showSection) {
     aboutText.textContent = bio;
@@ -514,17 +510,20 @@ function renderFooter(business, siteConfig) {
   brandEl.appendChild(title);
 
   const postal = String(business?.postalCode || '').trim();
-  const city = String(business?.city || '').trim();
-  const state = String(business?.state || '').trim();
-  for (const line of [postal, city, state]) {
-    if (!line) continue;
+  const locationLine = formatBusinessLocation(business);
+  if (postal) {
     const p = document.createElement('p');
     p.className = 'footer-brand__line';
-    p.textContent = line;
+    p.textContent = postal;
+    brandEl.appendChild(p);
+  }
+  if (locationLine) {
+    const p = document.createElement('p');
+    p.className = 'footer-brand__line';
+    p.textContent = locationLine;
     brandEl.appendChild(p);
   }
 
-  const locationLine = formatBusinessLocation(business);
   const mapsOpen =
     cfg.footerShowLocation !== false
       ? resolveGoogleMapsOpenUrl(business, locationLine)
