@@ -14,12 +14,14 @@ const FOOD_ORDER = new Set([
   'bar',
   'catering',
   'iceCream',
+  'pastry',
 ]);
 const RETAIL_ORDER = new Set([
   'retail',
   'fashion',
   'electronics',
   'grocery',
+  'convenienceStore',
   'bakery',
   'wholesale',
   'butcher',
@@ -35,6 +37,8 @@ const APPOINTMENT = new Set([
   'salon',
   'spa',
   'clinic',
+  'dental',
+  'veterinary',
   'fitness',
   'education',
   'automotive',
