@@ -1,3 +1,32 @@
+import { resolveGoogleMapsOpenUrl, resolveMapsEmbedSrc } from './googleMapsUrl.js';
+import {
+  openWhatsApp,
+  resolveContactCtaLabel,
+  resolveHeroCta,
+} from './siteCtaPresets.js';
+
+let storeCtaNavigate = null;
+
+/** Register shop view navigation for hero CTAs (call once from main.js). */
+export function setStoreCtaNavigate(fn) {
+  storeCtaNavigate = fn;
+}
+
+function runCtaTarget(target, business) {
+  const t = target || 'contact';
+  if (t === 'whatsapp') {
+    if (!openWhatsApp(business)) storeCtaNavigate?.('contact');
+    return;
+  }
+  const views = {
+    products: 'products',
+    services: 'services',
+    contact: 'contact',
+    offers: 'offers',
+  };
+  storeCtaNavigate?.(views[t] || 'contact');
+}
+
 function parseHex(hex) {
   const h = String(hex || '').replace('#', '').trim();
   if (h.length === 3) {
@@ -202,6 +231,11 @@ function setSectionHead(sectionEl, cfg, fallbackTitle) {
   let desc = head.querySelector(`#${descId}`);
   if (cfg?.title && h2) h2.textContent = cfg.title;
   else if (h2 && fallbackTitle) h2.textContent = fallbackTitle;
+  // «Rreth nesh» body comes only from profile aboutBio (#about-text), not siteConfig.description.
+  if (sectionEl.id === 'about') {
+    if (desc) desc.remove();
+    return;
+  }
   if (cfg?.description) {
     if (!desc) {
       desc = document.createElement('p');
@@ -213,6 +247,81 @@ function setSectionHead(sectionEl, cfg, fallbackTitle) {
     desc.classList.remove('hidden');
   } else if (desc) {
     desc.classList.add('hidden');
+  }
+}
+
+function applyAboutContent(business, map) {
+  const aboutText = document.getElementById('about-text');
+  if (!aboutText) return;
+  const dup = document.getElementById('about')?.querySelector('#about-desc');
+  dup?.remove();
+  const bio = String(business?.aboutBio || '').trim();
+  if (bio && isEnabled(map, 'about')) {
+    aboutText.textContent = bio;
+    aboutText.classList.remove('hidden');
+  } else {
+    aboutText.textContent = '';
+    aboutText.classList.add('hidden');
+  }
+}
+
+function applyContactIntro(map) {
+  const contactText = document.getElementById('contact-text');
+  if (!contactText) return;
+  const desc = String(map.get('contact')?.description || '').trim();
+  if (desc && isEnabled(map, 'contact')) {
+    contactText.textContent = desc;
+    contactText.classList.remove('hidden');
+  } else {
+    contactText.textContent = '';
+    contactText.classList.add('hidden');
+  }
+}
+
+function applySectionUi(map, business) {
+  const heroCfg = map.get('hero');
+  if (isEnabled(map, 'hero')) {
+    const resolved = resolveHeroCta(heroCfg, business);
+    const cta = document.getElementById('hero-cta');
+    const cta2 = document.getElementById('hero-cta-services');
+    if (cta) cta.textContent = resolved.primaryLabel;
+    if (cta2 && resolved.secondaryLabel) cta2.textContent = resolved.secondaryLabel;
+    const trust = document.getElementById('hero-trust');
+    const bullets = resolved.trustBullets;
+    if (trust && Array.isArray(bullets) && bullets.length) {
+      trust.replaceChildren();
+      for (const text of bullets) {
+        const li = document.createElement('li');
+        li.textContent = text;
+        trust.appendChild(li);
+      }
+    }
+  }
+
+  const contactCfg = map.get('contact');
+  if (isEnabled(map, 'contact')) {
+    const waLabel = document.getElementById('contact-wa-label');
+    if (waLabel) waLabel.textContent = resolveContactCtaLabel(contactCfg, business);
+  }
+}
+
+/** Wire hero button clicks after catalog/services load. */
+export function wireStoreCtas(business, map, { hasServices = false } = {}) {
+  if (!map || !isEnabled(map, 'hero')) return;
+  const resolved = resolveHeroCta(map.get('hero'), business);
+  const cta = document.getElementById('hero-cta');
+  const cta2 = document.getElementById('hero-cta-services');
+  if (cta) {
+    cta.onclick = () => runCtaTarget(resolved.primaryTarget, business);
+  }
+  if (cta2) {
+    const showSecondary =
+      Boolean(resolved.secondaryLabel) &&
+      (resolved.secondaryTarget !== 'services' || hasServices);
+    cta2.classList.toggle('hidden', !showSecondary);
+    if (showSecondary) {
+      cta2.onclick = () => runCtaTarget(resolved.secondaryTarget, business);
+    }
   }
 }
 
@@ -295,15 +404,44 @@ function renderFooter(business, siteConfig) {
   const cfg = siteConfig || {};
   const map = sectionMap(cfg);
 
-  const locationLine = formatBusinessLocation(business);
-  if (cfg.footerShowLocation !== false && locationLine) {
-    const p = document.createElement('p');
-    p.className = 'footer-line footer-line--location';
-    p.textContent = locationLine;
-    extras.appendChild(p);
+  const hoursLine = String(business?.openingHours || '').trim();
+  if (cfg.footerShowLocation !== false && hoursLine) {
+    const hoursEl = document.createElement('p');
+    hoursEl.className = 'footer-line footer-line--hours';
+    hoursEl.textContent = hoursLine;
+    extras.appendChild(hoursEl);
   }
 
-  const embedSrc = business?.googleMapsEmbedUrl || '';
+  const locationLine = formatBusinessLocation(business);
+  if (cfg.footerShowLocation !== false && locationLine) {
+    const mapsOpen = resolveGoogleMapsOpenUrl(business, locationLine);
+    const locEl = document.createElement(mapsOpen ? 'a' : 'p');
+    locEl.className = mapsOpen
+      ? 'footer-line footer-line--location location-action'
+      : 'footer-line footer-line--location';
+    locEl.textContent = locationLine;
+    if (mapsOpen) {
+      locEl.href = mapsOpen;
+      locEl.target = '_blank';
+      locEl.rel = 'noopener noreferrer';
+      locEl.title = 'Hap në Google Maps';
+    }
+    extras.appendChild(locEl);
+  }
+
+  const website = String(business?.website || '').trim();
+  if (cfg.footerShowLocation !== false && website) {
+    const href = website.startsWith('http') ? website : `https://${website}`;
+    const siteEl = document.createElement('a');
+    siteEl.className = 'footer-line footer-line--website';
+    siteEl.href = href;
+    siteEl.target = '_blank';
+    siteEl.rel = 'noopener noreferrer';
+    siteEl.textContent = website.replace(/^https?:\/\//i, '');
+    extras.appendChild(siteEl);
+  }
+
+  const embedSrc = resolveMapsEmbedSrc(business);
   if (cfg.footerShowLocation !== false && embedSrc) {
     const mapWrap = document.createElement('div');
     mapWrap.className = 'footer-map';
@@ -328,12 +466,13 @@ function renderFooter(business, siteConfig) {
   }
 
   if (cfg.footerShowWhatsApp !== false && digits) {
+    const contactCfg = map.get('contact');
     const wa = document.createElement('a');
     wa.className = 'footer-wa-btn';
     wa.href = `https://wa.me/${digits}`;
     wa.target = '_blank';
     wa.rel = 'noopener noreferrer';
-    wa.textContent = 'WhatsApp';
+    wa.textContent = resolveContactCtaLabel(contactCfg, business) || 'WhatsApp';
     extras.appendChild(wa);
   }
 
@@ -384,15 +523,7 @@ export function applySiteConfig(business) {
   const heroCfg = map.get('hero');
   const heroEl = document.getElementById('hero');
   if (heroEl && isEnabled(map, 'hero')) {
-    const titleEl = document.getElementById('hero-title');
-    const taglineEl = document.getElementById('hero-tagline');
-    const eyebrowEl = document.getElementById('hero-eyebrow');
-    if (heroCfg?.title && titleEl) titleEl.textContent = heroCfg.title;
-    if (heroCfg?.description && taglineEl) taglineEl.textContent = heroCfg.description;
-    if (eyebrowEl && !heroCfg?.title) eyebrowEl.textContent = business?.name || 'Mirësevini';
-
-    const ctaEl = document.getElementById('hero-cta');
-    if (ctaEl && heroCfg?.ctaLabel) ctaEl.textContent = heroCfg.ctaLabel;
+    // Hero H1, tagline, eyebrow come from business profile (Settings), not siteConfig text.
 
     const coverEl = document.getElementById('hero-cover');
     let coverUrl = business?.coverImageUrl || '';
@@ -418,19 +549,16 @@ export function applySiteConfig(business) {
   setSectionHead(document.getElementById('gallery'), map.get('gallery'), 'Galeria');
   setSectionHead(document.getElementById('contact'), map.get('contact'), 'Kontakt');
 
-  const aboutCfg = map.get('about');
-  const aboutText = document.getElementById('about-text');
-  if (aboutText) {
-    if (aboutCfg?.description) aboutText.textContent = aboutCfg.description;
+  applyAboutContent(business, map);
+  applyContactIntro(map);
+
+  if (isEnabled(map, 'gallery')) {
+    const galEl = document.getElementById('gallery');
+    if (galEl) galEl.classList.remove('view-hidden');
+    renderGallery(map.get('gallery'));
   }
 
-  const contactCfg = map.get('contact');
-  const contactText = document.getElementById('contact-text');
-  if (contactText && contactCfg?.description) {
-    contactText.textContent = contactCfg.description;
-  }
-
-  if (isEnabled(map, 'gallery')) renderGallery(map.get('gallery'));
+  applySectionUi(map, business);
 
   const siteNav = document.getElementById('site-nav');
   rebuildNav(siteConfig, siteNav);
@@ -439,5 +567,6 @@ export function applySiteConfig(business) {
   return {
     shopViews: buildShopViews(siteConfig),
     sectionIds: buildSectionIds(siteConfig),
+    sectionMap: map,
   };
 }

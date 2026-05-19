@@ -50,8 +50,19 @@ import {
 } from './pendingOrder.js';
 import { loadMarketplace, isMarketplaceMode } from './marketplace.js';
 import { businessTypeLabel } from './businessTypeLabels.js';
-import { applySiteConfig, formatBusinessLocation } from './siteConfig.js';
+import {
+  applySiteConfig,
+  formatBusinessLocation,
+  setStoreCtaNavigate,
+  wireStoreCtas,
+} from './siteConfig.js';
+import { resolveGoogleMapsOpenUrl } from './googleMapsUrl.js';
 import { applyProStoreTheme, clearProStoreTheme } from './storeProTheme.js';
+import {
+  getStoredScheme,
+  SCHEME_DARK,
+  toggleStoredScheme,
+} from './storeThemeMode.js';
 import {
   catalogSkeletonHtml,
   emptyStateHtml,
@@ -78,6 +89,7 @@ const cartCountEl = $('#cart-count');
 const orderPreview = $('#order-preview');
 const orderNotes = $('#order-notes');
 const customerNameInput = $('#customer-name');
+const customerAddressInput = $('#customer-address');
 const customerPhoneInput = $('#customer-phone');
 const btnWhatsApp = $('#btn-whatsapp');
 const btnSms = $('#btn-sms');
@@ -103,6 +115,7 @@ const navToggle = $('#nav-toggle');
 const siteNav = $('#site-nav');
 const brandLink = $('#brand-link');
 const langSwitcherEl = $('#lang-switcher');
+const themeToggleEl = $('#theme-toggle');
 const langModal = $('#lang-modal');
 const langModalBackdrop = $('#lang-modal-backdrop');
 const langModalClose = $('#lang-modal-close');
@@ -111,6 +124,9 @@ const storeBottomNav = $('#store-bottom-nav');
 const bottomCartBtn = $('#bottom-cart');
 const bottomCartCount = $('#bottom-cart-count');
 const cartBackdrop = $('#cart-backdrop');
+
+let storeBusinessProfile = null;
+let storeSectionMap = null;
 
 let products = [];
 let categories = [];
@@ -149,7 +165,6 @@ function renderHeroStats(business) {
   if (count != null && count > 0) {
     items.push({ value: String(count), label: count === 1 ? 'Produkt' : 'Produkte' });
   }
-  if (loc) items.push({ value: '✓', label: loc.split(',')[0].trim() });
   if (business?.orderPhone) items.push({ value: 'WA', label: 'Porosi WhatsApp' });
 
   if (!items.length || !document.body.classList.contains('store-pro')) {
@@ -174,7 +189,19 @@ function renderContactCards(business) {
   const phone = (business?.orderPhone || '').trim();
   const website = (business?.website || '').trim();
   const items = [];
-  if (loc) items.push({ label: 'Vendndodhja', value: loc, href: null });
+  if (loc) {
+    const mapsHref = resolveGoogleMapsOpenUrl(business, loc);
+    items.push({
+      label: 'Vendndodhja',
+      value: loc,
+      href: mapsHref || null,
+      mapsLink: Boolean(mapsHref),
+    });
+  }
+  const hours = String(business?.openingHours || '').trim();
+  if (hours) {
+    items.push({ label: 'Orari', value: hours, href: null });
+  }
   if (phone) {
     const digits = phoneDigits(phone);
     items.push({
@@ -204,6 +231,10 @@ function renderContactCards(business) {
         card.target = '_blank';
         card.rel = 'noopener noreferrer';
       }
+      if (item.mapsLink) {
+        card.classList.add('location-action');
+        card.title = 'Hap në Google Maps';
+      }
     }
     card.innerHTML = `<span class="contact-card__label">${escapeHtml(item.label)}</span><span class="contact-card__value">${escapeHtml(item.value)}</span>`;
     contactCards.appendChild(card);
@@ -211,10 +242,11 @@ function renderContactCards(business) {
   contactCards.classList.remove('hidden');
 }
 
-function updateHeroSecondaryCta() {
-  if (!heroCtaServices) return;
-  const hasServices = services.length > 0;
-  heroCtaServices.classList.toggle('hidden', !hasServices);
+function refreshStoreCtas() {
+  if (!storeBusinessProfile || !storeSectionMap) return;
+  wireStoreCtas(storeBusinessProfile, storeSectionMap, {
+    hasServices: services.length > 0,
+  });
 }
 
 function businessMonogram(name) {
@@ -252,21 +284,28 @@ function setHeroVisual(logoUrl, name) {
 function updateShopPresentation(business) {
   businessProfile = business || {};
   const name = business?.name || 'Dyqani';
-  const desc =
-    business?.description ||
-    'Produkte të zgjedhura me kujdes, çmime konkurruese dhe porosi të shpejta përmes WhatsApp.';
+  const tagline = String(business?.description || '').trim();
   displayShopName(name);
   if (brandLink) brandLink.setAttribute('aria-label', `${name} — Kreu`);
   if (heroTitle) heroTitle.textContent = name;
   const typeLabel = businessTypeLabel(business?.businessType);
-  if (heroEyebrow) heroEyebrow.textContent = typeLabel || 'Dyqan online';
-  if (heroTagline) {
-    heroTagline.textContent = desc.split('\n')[0].slice(0, 160);
+  if (heroEyebrow) {
+    if (typeLabel) {
+      heroEyebrow.textContent = typeLabel;
+      heroEyebrow.classList.remove('hidden');
+    } else {
+      heroEyebrow.textContent = '';
+      heroEyebrow.classList.add('hidden');
+    }
   }
-  if (aboutText) {
-    const locLine = formatBusinessLocation(business);
-    const loc = locLine ? `\n\n${locLine}` : '';
-    aboutText.textContent = `${desc}${loc}`.trim();
+  if (heroTagline) {
+    if (tagline) {
+      heroTagline.textContent = tagline.split('\n')[0].slice(0, 160);
+      heroTagline.classList.remove('hidden');
+    } else {
+      heroTagline.textContent = '';
+      heroTagline.classList.add('hidden');
+    }
   }
   if (shopSlug) {
     shopSlug.classList.add('hidden');
@@ -294,43 +333,8 @@ function updateShopPresentation(business) {
     }
   }
 
-  const profileBar = document.getElementById('hero-profile-bar');
-  const profileLogo = document.getElementById('hero-profile-logo');
-  const locationEl = document.getElementById('hero-location');
-  const websiteEl = document.getElementById('hero-website');
   shopLogoUrl = business?.logoUrl || '';
   setHeroVisual(shopLogoUrl, name);
-
-  if (profileBar) {
-    const locLine = formatBusinessLocation(business);
-    const hasMeta =
-      shopLogoUrl || locLine || business?.website || business?.orderPhone;
-    profileBar.classList.toggle('hidden', !hasMeta);
-  }
-  if (profileLogo) {
-    if (shopLogoUrl) {
-      profileLogo.src = shopLogoUrl;
-      profileLogo.classList.remove('hidden');
-    } else {
-      profileLogo.classList.add('hidden');
-    }
-  }
-  if (locationEl) {
-    const loc = formatBusinessLocation(business);
-    locationEl.textContent = loc;
-    locationEl.classList.toggle('hidden', !loc);
-  }
-  if (websiteEl) {
-    const site = (business?.website || '').trim();
-    if (site) {
-      const href = site.startsWith('http') ? site : `https://${site}`;
-      websiteEl.href = href;
-      websiteEl.textContent = site.replace(/^https?:\/\//, '');
-      websiteEl.classList.remove('hidden');
-    } else {
-      websiteEl.classList.add('hidden');
-    }
-  }
 
   renderContactCards(business);
   renderHeroStats(business);
@@ -340,15 +344,8 @@ function updateShopPresentation(business) {
   if (contactWa && digits) {
     contactWa.href = `https://wa.me/${digits}`;
     contactWa.classList.remove('hidden');
-    if (contactText) {
-      contactText.textContent =
-        'Porosit nga shporta — mesazhi shkon te numri i biznesit në WhatsApp (nga telefoni juaj).';
-    }
   } else if (contactWa) {
     contactWa.classList.add('hidden');
-    if (contactText) {
-      contactText.textContent = 'Vendosni numrin e porosive te Settings në admin.';
-    }
   }
 }
 
@@ -433,6 +430,7 @@ function openMobileNav() {
 }
 
 function initSiteNav() {
+  setStoreCtaNavigate((view) => setShopView(view));
   footerYear.textContent = String(new Date().getFullYear());
 
   navToggle?.addEventListener('click', () => {
@@ -459,8 +457,6 @@ function initSiteNav() {
     setShopView('home');
   });
 
-  heroCta?.addEventListener('click', () => setShopView('products'));
-  heroCtaServices?.addEventListener('click', () => setShopView('services'));
   window.addEventListener('hashchange', () => setShopView(parseShopViewFromHash()));
 
   storeBottomNav?.querySelectorAll('[data-bottom-nav]').forEach((btn) => {
@@ -529,35 +525,84 @@ function hasActivePending() {
   return p && isPendingStatus(p.status);
 }
 
-function buildOrderMessage(cart, notes, customer) {
+function formatOrderMessageBody({
+  businessLabel,
+  orderNumber,
+  lineRows,
+  totalLabel,
+  customer,
+  address,
+  orderNotes,
+}) {
+  const addr = String(address || '').trim();
+  const phone = String(customer?.phone || '').trim();
+  const notes = String(orderNotes || '').trim();
+  const parts = [
+    'Përshëndetje!',
+    '',
+    `Porosi online — ${businessLabel}`,
+    orderNumber ? `Referenca: ${orderNumber}` : 'Referenca: (pas dërgimit)',
+    '',
+    '▸ POROSIA',
+    ...lineRows,
+    '',
+    `▸ TOTALI: ${totalLabel}`,
+    '',
+    '▸ KLIENTI',
+    `Emri: ${customer?.name || '—'}`,
+  ];
+  if (addr) parts.push(`Adresa: ${addr}`);
+  if (phone) parts.push(`Telefoni: ${phone}`);
+  else parts.push('Telefoni: (kontakt përmes WhatsApp)');
+  if (notes) {
+    parts.push('', '▸ KËRKESA PËR POROSINË', notes);
+  }
+  parts.push('', 'Faleminderit!');
+  return parts.join('\n');
+}
+
+function buildOrderMessage(cart, checkout, orderNumber = null) {
+  const { customer, address, orderNotes } = checkout;
   const groups = groupCartByBusiness(cart);
-  const parts = [`Porosi nga shop online`, '─────────────────'];
 
   if (groups.size > 1) {
+    const blocks = [];
     for (const [slug, items] of groups) {
-      parts.push(`\n[${slug}]`);
-      for (const i of items) {
-        parts.push(`${i.quantity}× ${i.name} — ${formatEuro(i.price * i.quantity)}`);
-      }
+      const lineRows = items.map(
+        (i) => `• ${i.quantity}× ${i.name} — ${formatEuro(i.price * i.quantity)}`,
+      );
       const sub = items.reduce((s, i) => s + i.price * i.quantity, 0);
-      parts.push(`Nëntotali: ${formatEuro(sub)}`);
+      blocks.push(
+        formatOrderMessageBody({
+          businessLabel: slug,
+          orderNumber,
+          lineRows,
+          totalLabel: formatEuro(sub),
+          customer,
+          address,
+          orderNotes,
+        }),
+      );
     }
-    parts.push('─────────────────');
-    parts.push(`Total: ${formatEuro(cartTotal(cart))}`);
-  } else {
-    const rows = cart.map(
-      (i) => `${i.quantity}× ${i.name} — ${formatEuro(i.price * i.quantity)}`,
+    blocks.push(
+      '',
+      `▸ TOTALI I PËRGJITHSHËM: ${formatEuro(cartTotal(cart))}`,
     );
-    parts.push(`Porosi — ${businessName}`, ...rows);
-    parts.push('─────────────────', `Total: ${formatEuro(cartTotal(cart))}`);
+    return blocks.join('\n\n');
   }
 
-  if (customer?.name && customer?.phone) {
-    parts.push(`Klienti: ${customer.name}, ${customer.phone}`);
-  }
-  const trimmedNotes = String(notes || '').trim();
-  if (trimmedNotes) parts.push(`Shënime: ${trimmedNotes}`);
-  return parts.join('\n');
+  const lineRows = cart.map(
+    (i) => `• ${i.quantity}× ${i.name} — ${formatEuro(i.price * i.quantity)}`,
+  );
+  return formatOrderMessageBody({
+    businessLabel: businessName,
+    orderNumber,
+    lineRows,
+    totalLabel: formatEuro(cartTotal(cart)),
+    customer,
+    address,
+    orderNotes,
+  });
 }
 
 function whatsAppUrl(text) {
@@ -690,6 +735,7 @@ function dismissPendingOrder() {
   clearCart();
   orderNotes.value = '';
   if (customerNameInput) customerNameInput.value = '';
+  if (customerAddressInput) customerAddressInput.value = '';
   if (customerPhoneInput) customerPhoneInput.value = '';
   renderCart([]);
   renderPendingBanner();
@@ -794,7 +840,7 @@ function updateOrderPreview() {
     orderPreview.textContent = '';
     return;
   }
-  orderPreview.textContent = buildOrderMessage(cart, orderNotes.value, readCustomer());
+  orderPreview.textContent = buildOrderMessage(cart, readCheckoutFields());
   orderPreview.classList.remove('hidden');
 }
 
@@ -1192,17 +1238,56 @@ async function loadServices() {
     const data = await fetchServices(getSlug());
     services = data.services || [];
     renderServices();
-    updateHeroSecondaryCta();
+    refreshStoreCtas();
   } catch {
     services = [];
     renderServices();
-    updateHeroSecondaryCta();
+    refreshStoreCtas();
   }
+}
+
+function hideThemeToggle() {
+  if (!themeToggleEl) return;
+  themeToggleEl.hidden = true;
+  themeToggleEl.classList.add('hidden');
+}
+
+function updateThemeToggleUi(scheme) {
+  if (!themeToggleEl) return;
+  const isDark = scheme === SCHEME_DARK;
+  themeToggleEl.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+  themeToggleEl.setAttribute(
+    'aria-label',
+    isDark ? 'Aktivizo modalitetin e ndritshëm' : 'Aktivizo modalitetin e errët',
+  );
+}
+
+function applyStoreColorScheme(scheme) {
+  if (storeBusinessProfile) applyProStoreTheme(storeBusinessProfile, scheme);
+  updateThemeToggleUi(scheme);
+}
+
+function initThemeToggle() {
+  if (!themeToggleEl || !hasStoreSlug()) {
+    hideThemeToggle();
+    return;
+  }
+  const scheme = getStoredScheme(getSlug());
+  applyStoreColorScheme(scheme);
+  themeToggleEl.hidden = false;
+  themeToggleEl.classList.remove('hidden');
+  if (themeToggleEl.dataset.bound === '1') return;
+  themeToggleEl.dataset.bound = '1';
+  themeToggleEl.addEventListener('click', () => {
+    applyStoreColorScheme(toggleStoredScheme(getSlug()));
+  });
 }
 
 async function renderMarketplaceHome() {
   document.body.dataset.mode = 'marketplace';
+  storeBusinessProfile = null;
   clearProStoreTheme();
+  hideThemeToggle();
   heroTrust?.classList.add('hidden');
   storeBottomNav?.classList.add('hidden');
   offersSection.classList.add('hidden');
@@ -1295,6 +1380,8 @@ function applyShopSeo(business) {
 
 function showStoreLoadError(err, slug) {
   document.body.dataset.mode = 'store';
+  storeBusinessProfile = null;
+  hideThemeToggle();
   heroTrust?.classList.add('hidden');
   storeBottomNav?.classList.add('hidden');
   offersSection?.classList.add('hidden');
@@ -1369,8 +1456,10 @@ async function loadShop() {
   renderLangSwitcher();
   applyShopSeo(business);
   const routing = applySiteConfig(business);
-  applyProStoreTheme(business);
-  if (heroCta) heroCta.textContent = 'Porosit tani';
+  storeBusinessProfile = business;
+  storeSectionMap = routing?.sectionMap || null;
+  refreshStoreCtas();
+  initThemeToggle();
   renderHeroStats(business);
   if (routing?.shopViews) SHOP_VIEWS = routing.shopViews;
   if (routing?.sectionIds?.length) SHOP_SECTION_IDS = routing.sectionIds;
@@ -1402,12 +1491,24 @@ function readCustomer() {
   };
 }
 
-function validateCustomer(customer) {
+function readCheckoutFields() {
+  return {
+    customer: readCustomer(),
+    address: customerAddressInput?.value.trim() || '',
+    orderNotes: orderNotes?.value.trim() || '',
+  };
+}
+
+function validateCheckout({ customer, address }) {
   if (!customer.name || customer.name.length < 2) {
     return 'Shkruani emrin (min. 2 shkronja).';
   }
-  if (phoneDigits(customer.phone).length < 8) {
-    return 'Shkruani numrin e telefonit (min. 8 shifra).';
+  if (!address || address.length < 5) {
+    return 'Shkruani adresën e plotë të dorëzimit.';
+  }
+  const digits = phoneDigits(customer.phone);
+  if (customer.phone && digits.length > 0 && digits.length < 8) {
+    return 'Numri i telefonit është i pavlefshëm (min. 8 shifra) ose lëreni bosh.';
   }
   return null;
 }
@@ -1436,16 +1537,15 @@ async function sendOrder(channel) {
   const cart = loadCart();
   if (!cart.length || !canPlaceOrders()) return;
 
-  const customer = readCustomer();
-  const customerError = validateCustomer(customer);
+  const checkout = readCheckoutFields();
+  const customerError = validateCheckout(checkout);
   if (customerError) {
     checkoutError.textContent = customerError;
     checkoutError.classList.remove('hidden');
     return;
   }
 
-  const notes = orderNotes.value.trim();
-  const localMessage = buildOrderMessage(cart, notes, customer);
+  const { customer, address, orderNotes: orderNotesText } = checkout;
   const groups = cartToGroups(cart);
   const slugs = groups.map((g) => g.slug);
   const useBatch = true;
@@ -1460,8 +1560,9 @@ async function sendOrder(channel) {
         body: JSON.stringify({
           customer: {
             name: customer.name,
-            phone: customer.phone,
-            notes: notes || undefined,
+            phone: customer.phone || undefined,
+            address: address || undefined,
+            notes: orderNotesText || undefined,
           },
           channel,
           groups,
@@ -1494,11 +1595,12 @@ async function sendOrder(channel) {
         savePendingOrder({
           orderId: o.orderId,
           orderNumber: o.orderNumber,
-          phone: customer.phone,
+          phone: customer.phone || '',
           name: customer.name,
+          address,
           status: o.status || 'pending',
           cart: cartSnapshot,
-          notes,
+          notes: orderNotesText,
           createdAt: new Date().toISOString(),
           businessSlug: o.slug || slugs[0],
         });
@@ -1540,6 +1642,9 @@ function restorePendingOnLoad() {
     saveCart(pending.cart);
     if (pending.notes) orderNotes.value = pending.notes;
     if (customerNameInput && pending.name) customerNameInput.value = pending.name;
+    if (customerAddressInput && pending.address) {
+      customerAddressInput.value = pending.address;
+    }
     if (customerPhoneInput && pending.phone) {
       customerPhoneInput.value = pending.phone;
     }
@@ -1568,6 +1673,7 @@ document.addEventListener('keydown', (e) => {
 });
 orderNotes.addEventListener('input', updateOrderPreview);
 customerNameInput?.addEventListener('input', updateOrderPreview);
+customerAddressInput?.addEventListener('input', updateOrderPreview);
 customerPhoneInput?.addEventListener('input', updateOrderPreview);
 btnWhatsApp.addEventListener('click', () => sendOrder('whatsapp'));
 btnSms.addEventListener('click', () => sendOrder('sms'));

@@ -164,6 +164,42 @@ body[data-mode='store'] .brand-logo.brand-logo--store {
   display: none !important;
 }
 
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.theme-toggle:hover {
+  border-color: color-mix(in srgb, var(--yellow) 50%, var(--border));
+}
+
+.theme-toggle[hidden],
+.theme-toggle.hidden {
+  display: none !important;
+}
+
+.theme-toggle__icon {
+  display: block;
+}
+
+body.store-pro:not(.store-pro--dark) .theme-toggle__icon--sun {
+  display: none;
+}
+
+body.store-pro.store-pro--dark .theme-toggle__icon--moon {
+  display: none;
+}
+
 /* Language picker modal */
 .lang-modal {
   position: fixed;
@@ -411,6 +447,31 @@ body.nav-open .nav-toggle span:nth-child(3) {
   gap: 6px;
 }
 
+.location-action {
+  cursor: pointer;
+  transition: color 0.15s, opacity 0.15s;
+}
+
+.location-action:hover,
+.location-action:focus-visible {
+  color: var(--yellow);
+  outline: none;
+}
+
+a.location-action {
+  text-decoration: none;
+}
+
+a.location-action:hover,
+a.location-action:focus-visible {
+  text-decoration: underline;
+}
+
+.contact-card.location-action .contact-card__value {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .hero-location::before {
   content: '';
   width: 14px;
@@ -428,6 +489,16 @@ body.nav-open .nav-toggle span:nth-child(3) {
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
+}
+
+.footer-line--website {
+  color: var(--yellow, #ff6b35);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.footer-line--website:hover {
+  text-decoration: underline;
 }
 
 .hero-website:hover {
@@ -1344,12 +1415,18 @@ body.gallery-open {
   line-height: 1.45;
   white-space: pre-wrap;
   color: var(--muted);
-  max-height: 140px;
+  max-height: 200px;
   overflow-y: auto;
 }
 
 .checkout-form label .muted {
   font-weight: 400;
+}
+
+.checkout-field-hint {
+  margin: -4px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
 }
 
 .send-actions {
@@ -2375,7 +2452,7 @@ body.store-pro {
 }
 
 body.store-pro .site-header {
-  box-shadow: 0 1px 0 var(--border), 0 4px 24px rgba(28, 25, 23, 0.06);
+  box-shadow: var(--store-header-shadow, 0 1px 0 var(--border), 0 4px 24px rgba(28, 25, 23, 0.06));
 }
 
 body.store-pro .brand-name {
@@ -2448,7 +2525,7 @@ body.store-pro .hero--with-cover .hero-visual {
 
 body.store-pro .hero:not(.hero--with-cover) .hero-visual-card {
   border: none;
-  box-shadow: 0 20px 50px rgba(28, 25, 23, 0.12);
+  box-shadow: var(--store-hover-shadow, 0 20px 50px rgba(28, 25, 23, 0.12));
 }
 
 body.store-pro .hero-title {
@@ -2522,13 +2599,13 @@ body.store-pro .product-card,
 body.store-pro .service-card,
 body.store-pro .offer-card,
 body.store-pro .info-section {
-  background: #fff;
+  background: var(--store-card-bg, #fff);
   border-color: var(--border);
-  box-shadow: 0 2px 16px rgba(28, 25, 23, 0.06);
+  box-shadow: var(--store-elevated-shadow, 0 2px 16px rgba(28, 25, 23, 0.06));
 }
 
 body.store-pro .product-card:hover {
-  box-shadow: 0 12px 32px rgba(28, 25, 23, 0.1);
+  box-shadow: var(--store-hover-shadow, 0 12px 32px rgba(28, 25, 23, 0.1));
 }
 
 body.store-pro .product-price {
@@ -2545,13 +2622,13 @@ body.store-pro .catalog {
 }
 
 body.store-pro .site-footer {
-  background: #fff;
+  background: var(--store-card-bg, #fff);
   border-top: 1px solid var(--border);
   margin-top: 24px;
 }
 
 body.store-pro .store-bottom-nav {
-  background: rgba(255, 255, 255, 0.96);
+  background: color-mix(in srgb, var(--store-card-bg, #fff) 96%, transparent);
   border-top-color: var(--border);
 }
 
@@ -2561,7 +2638,7 @@ body.store-pro .store-bottom-nav__btn.is-active {
 }
 
 body.store-pro .cart-inner {
-  background: #fff;
+  background: var(--store-card-bg, #fff);
   color: var(--text);
 }
 
@@ -2578,4 +2655,37 @@ body.store-pro .checkout-form textarea {
 
 body.store-pro .variant-select {
   background: var(--store-page-bg, #f5f3f0);
+}
+
+/* Store dark mode — same layout as light, inverted surfaces */
+body.store-pro.store-pro--dark .hero--with-cover .hero-cover::after {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.92) 0%,
+    rgba(0, 0, 0, 0.55) 45%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+}
+
+body.store-pro.store-pro--dark .order-preview {
+  background: var(--navy-mid);
+  border-color: var(--border);
+}
+
+body.store-pro.store-pro--dark .lang-modal-sheet {
+  background: var(--store-card-bg, #1c1917);
+  color: var(--text);
+}
+
+body.store-pro.store-pro--dark .cart-backdrop {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+body.store-pro.store-pro--dark .gallery-dialog {
+  background: var(--store-card-bg, #1c1917);
+}
+
+body.store-pro.store-pro--dark .pending-order {
+  background: color-mix(in srgb, var(--yellow) 10%, var(--navy-mid));
+  border-color: color-mix(in srgb, var(--yellow) 35%, var(--border));
 }

@@ -34,6 +34,15 @@
           <a href="#contact" class="nav-link" data-nav data-view="contact">Kontakt</a>
         </nav>
         <div class="header-actions">
+          <button type="button" id="theme-toggle" class="theme-toggle hidden" hidden aria-label="Aktivizo modalitetin e errët" aria-pressed="false">
+            <svg class="theme-toggle__icon theme-toggle__icon--moon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            <svg class="theme-toggle__icon theme-toggle__icon--sun" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
           <button type="button" id="lang-switcher" class="lang-switcher lang-switcher--trigger hidden" hidden aria-label="Gjuha" aria-haspopup="dialog" aria-controls="lang-modal"></button>
           <button type="button" id="nav-toggle" class="nav-toggle" aria-label="Hap menunë" aria-expanded="false" aria-controls="site-nav">
             <span></span><span></span><span></span>
@@ -52,27 +61,16 @@
 
     <section id="hero" class="hero">
       <div id="hero-cover" class="hero-cover hidden" aria-hidden="true"></div>
-      <div class="hero-profile-bar hidden" id="hero-profile-bar">
-        <img id="hero-profile-logo" class="hero-profile-logo hidden" alt="" />
-        <div class="hero-profile-meta">
-          <p id="hero-location" class="hero-location muted hidden"></p>
-          <a id="hero-website" class="hero-website hidden" href="#" target="_blank" rel="noopener noreferrer"></a>
-        </div>
-      </div>
       <div class="hero-inner">
         <div class="hero-copy">
-          <p class="hero-eyebrow" id="hero-eyebrow">Mirësevini</p>
-          <h1 class="hero-title" id="hero-title">Mirësevini në dyqanin tonë</h1>
-          <p class="hero-tagline" id="hero-tagline">Produkte dhe shërbime të zgjedhura — porosi të shpejta online.</p>
+          <p class="hero-eyebrow hidden" id="hero-eyebrow"></p>
+          <h1 class="hero-title" id="hero-title"></h1>
+          <p class="hero-tagline hidden" id="hero-tagline"></p>
           <div class="hero-actions">
             <button type="button" id="hero-cta" class="hero-cta">Shiko produktet</button>
             <button type="button" id="hero-cta-services" class="hero-cta hero-cta--secondary hidden">Shërbimet</button>
           </div>
-          <ul class="hero-trust hidden" id="hero-trust" aria-label="Përfitimet">
-            <li>Porosi online</li>
-            <li>Kontakt WhatsApp</li>
-            <li>Çmime transparente</li>
-          </ul>
+          <ul class="hero-trust hidden" id="hero-trust" aria-label="Përfitimet"></ul>
           <div id="hero-stats" class="hero-stats hidden" aria-label="Statistika"></div>
         </div>
         <div class="hero-visual" aria-hidden="true">
@@ -111,10 +109,10 @@
         <div class="section-head">
           <h2>Rreth nesh</h2>
         </div>
-        <p id="about-text" class="info-body muted">Duke ngarkuar…</p>
+        <p id="about-text" class="info-body muted hidden"></p>
       </section>
 
-      <section id="gallery" class="info-section gallery-site-section view-hidden">
+      <section id="gallery" class="info-section gallery-site-section">
         <div class="section-head">
           <h2>Galeria</h2>
         </div>
@@ -129,7 +127,7 @@
         <div id="contact-cards" class="contact-cards hidden"></div>
         <a id="contact-wa" class="contact-wa hidden" href="#" target="_blank" rel="noopener noreferrer">
           <span class="contact-wa__icon" aria-hidden="true"></span>
-          Na shkruani në WhatsApp
+          <span id="contact-wa-label">Na shkruani në WhatsApp</span>
         </a>
       </section>
     </main>
@@ -174,12 +172,15 @@
           <p id="cart-total" class="cart-total-line"></p>
           <pre id="order-preview" class="order-preview hidden" aria-label="Përmbledhje porosie"></pre>
           <div class="checkout-form">
-            <label for="customer-name">Emri</label>
-            <input id="customer-name" type="text" autocomplete="name" placeholder="Emri juaj" required />
-            <label for="customer-phone">Telefoni</label>
-            <input id="customer-phone" type="tel" autocomplete="tel" placeholder="+383 44 123 456" required />
-            <label for="order-notes">Shënime <span class="muted">(opsionale)</span></label>
-            <textarea id="order-notes" rows="2" placeholder="Adresa, koha e dorëzimit…"></textarea>
+            <label for="customer-name">Emri dhe mbiemri</label>
+            <input id="customer-name" type="text" autocomplete="name" placeholder="p.sh. Arben Krasniqi" required />
+            <label for="customer-address">Adresa e dorëzimit</label>
+            <input id="customer-address" type="text" autocomplete="street-address" placeholder="Rruga, nr., qyteti" required />
+            <label for="order-notes">Kërkesa për porosinë <span class="muted">(opsionale)</span></label>
+            <textarea id="order-notes" rows="3" placeholder="p.sh. pa domate, koha e preferuar, hyrja e pallatit…"></textarea>
+            <label for="customer-phone">Telefoni <span class="muted">(opsionale)</span></label>
+            <input id="customer-phone" type="tel" autocomplete="tel" placeholder="+383 44 123 456" />
+            <p class="checkout-field-hint muted">Porosia dërgohet nga WhatsApp-i juaj; numri është vetëm nëse dëshironi ta shënoni këtu.</p>
             <div class="send-actions">
               <button type="button" id="btn-whatsapp" class="send-btn send-btn--wa" disabled>WhatsApp</button>
               <button type="button" id="btn-sms" class="send-btn send-btn--sms" disabled>SMS</button>
