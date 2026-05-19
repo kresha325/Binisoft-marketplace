@@ -459,13 +459,15 @@ function initSiteNav() {
 
   window.addEventListener('hashchange', () => setShopView(parseShopViewFromHash()));
 
-  storeBottomNav?.querySelectorAll('[data-bottom-nav]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const view = btn.getAttribute('data-bottom-nav') || 'home';
-      setShopView(view);
-    });
+  storeBottomNav?.addEventListener('click', (e) => {
+    if (e.target.closest('#bottom-cart')) {
+      openCart();
+      return;
+    }
+    const btn = e.target.closest('[data-bottom-nav]');
+    if (!btn) return;
+    setShopView(btn.getAttribute('data-bottom-nav') || 'home');
   });
-  bottomCartBtn?.addEventListener('click', openCart);
 
   initStoreScrollSpy((view, meta) => {
     if (!isStoreMode()) return;
@@ -482,9 +484,10 @@ function initSiteNav() {
 function updateCartBadge(count) {
   cartCountEl.textContent = String(count);
   cartCountEl.dataset.zero = count === 0 ? 'true' : 'false';
-  if (bottomCartCount) {
-    bottomCartCount.textContent = String(count);
-    bottomCartCount.classList.toggle('hidden', count === 0);
+  const badge = document.getElementById('bottom-cart-count');
+  if (badge) {
+    badge.textContent = String(count);
+    badge.classList.toggle('hidden', count === 0);
   }
 }
 
@@ -866,16 +869,8 @@ function offerItemPriceHtml(item) {
 }
 
 function syncStoreBottomNav() {
-  if (!storeBottomNav) return;
-  storeBottomNav.querySelectorAll('[data-bottom-nav]').forEach((btn) => {
-    const view = btn.getAttribute('data-bottom-nav');
-    const cfg = STORE_VIEW_SECTIONS[view];
-    if (!cfg || cfg.scrollTop) return;
-    const el = document.getElementById(cfg.sectionId);
-    const off = el?.classList.contains('site-section-disabled');
-    btn.classList.toggle('hidden', off);
-    btn.disabled = off;
-  });
+  const view = document.body.dataset.shopView || 'home';
+  highlightShopNav(view, { updateHash: false });
 }
 
 function bindEmptyStateActions(container) {

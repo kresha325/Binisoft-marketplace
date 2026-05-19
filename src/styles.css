@@ -2178,9 +2178,11 @@ body.cart-open {
   right: 0;
   bottom: 0;
   z-index: 45;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
+  flex-wrap: nowrap;
   gap: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px));
   background: color-mix(in srgb, var(--navy-mid) 94%, transparent);
   backdrop-filter: blur(16px);
@@ -2193,6 +2195,9 @@ body.cart-open {
 }
 
 .store-bottom-nav__btn {
+  flex: 1 1 0;
+  min-width: 3.5rem;
+  max-width: 6.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2214,6 +2219,13 @@ body.cart-open {
 
 .store-bottom-nav__btn svg {
   flex-shrink: 0;
+}
+
+.store-bottom-nav__btn span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .store-bottom-nav__btn:hover {

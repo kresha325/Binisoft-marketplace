@@ -134,7 +134,93 @@ function sectionMap(siteConfig) {
 
 function isEnabled(map, id) {
   const s = map.get(id);
-  return s ? s.enabled !== false : true;
+  if (!s) return false;
+  return s.enabled !== false;
+}
+
+const BOTTOM_NAV_SVG = {
+  home: '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  products:
+    '<rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>',
+  services:
+    '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  offers:
+    '<path d="M7 7h10l-1 5H8L7 7zM9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
+  about:
+    '<circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  gallery:
+    '<rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 14l2.5-2.5L14 15l2-2 4 4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9" cy="10" r="1" fill="currentColor"/>',
+  contact:
+    '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z" stroke="currentColor" stroke-width="1.8"/>',
+};
+
+/** Nav items from enabled siteConfig sections (labels from navLabel / title). */
+export function buildNavLinks(siteConfig) {
+  const map = sectionMap(siteConfig);
+  const links = [];
+  const sectionOrder = ['products', 'services', 'offers', 'about', 'gallery', 'contact'];
+  const anySection = sectionOrder.some((id) => isEnabled(map, id));
+  if (isEnabled(map, 'hero') || anySection) {
+    links.push({ view: 'home', label: DEFAULT_NAV_LABELS.home, href: '#' });
+  }
+  for (const id of sectionOrder) {
+    if (!isEnabled(map, id)) continue;
+    const cfg = map.get(id);
+    const view = NAV_VIEW[id];
+    const label = (cfg?.navLabel || cfg?.title || DEFAULT_NAV_LABELS[view] || '').trim();
+    if (!label) continue;
+    links.push({ view, label, href: `#${view}` });
+  }
+  return links;
+}
+
+function rebuildNav(siteConfig, siteNav) {
+  if (!siteNav) return;
+  siteNav.replaceChildren();
+  for (const link of buildNavLinks(siteConfig)) {
+    const a = document.createElement('a');
+    a.href = link.href;
+    a.className = 'nav-link';
+    a.dataset.nav = '';
+    a.dataset.view = link.view;
+    a.textContent = link.label;
+    siteNav.appendChild(a);
+  }
+}
+
+function rebuildBottomNav(siteConfig, bottomNavEl) {
+  if (!bottomNavEl) return;
+  const cartBadgeHidden = document.getElementById('bottom-cart-count')?.classList.contains('hidden');
+  const cartCount = document.getElementById('bottom-cart-count')?.textContent || '0';
+  bottomNavEl.replaceChildren();
+
+  for (const link of buildNavLinks(siteConfig)) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'store-bottom-nav__btn';
+    btn.dataset.bottomNav = link.view;
+    btn.setAttribute('aria-label', link.label);
+    const paths = BOTTOM_NAV_SVG[link.view] || BOTTOM_NAV_SVG.contact;
+    btn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">${paths}</svg>`;
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = link.label;
+    btn.appendChild(labelSpan);
+    bottomNavEl.appendChild(btn);
+  }
+
+  const cartBtn = document.createElement('button');
+  cartBtn.type = 'button';
+  cartBtn.className = 'store-bottom-nav__btn store-bottom-nav__btn--cart';
+  cartBtn.id = 'bottom-cart';
+  cartBtn.setAttribute('aria-label', 'Shporta');
+  cartBtn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg><span>Shporta</span><span id="bottom-cart-count" class="store-bottom-nav__badge${cartBadgeHidden ? ' hidden' : ''}">${cartCount}</span>`;
+  bottomNavEl.appendChild(cartBtn);
+}
+
+/** Rebuild header + mobile bottom nav from siteConfig. */
+export function rebuildSiteNavigation(siteConfig) {
+  rebuildNav(siteConfig, document.getElementById('site-nav'));
+  rebuildBottomNav(siteConfig, document.getElementById('store-bottom-nav'));
 }
 
 function youtubeEmbedUrl(url) {
@@ -362,41 +448,6 @@ function renderGallery(cfg) {
   }
 }
 
-function rebuildNav(siteConfig, siteNav) {
-  if (!siteNav) return;
-  const map = sectionMap(siteConfig);
-  siteNav.replaceChildren();
-  const links = [];
-  if (
-    isEnabled(map, 'hero') ||
-    isEnabled(map, 'offers') ||
-    isEnabled(map, 'products') ||
-    isEnabled(map, 'services')
-  ) {
-    links.push({ view: 'home', label: DEFAULT_NAV_LABELS.home, href: '#' });
-  }
-  for (const id of ['products', 'services', 'offers', 'about', 'gallery', 'contact']) {
-    if (!isEnabled(map, id)) continue;
-    const cfg = map.get(id);
-    const view = NAV_VIEW[id];
-    const label = cfg?.navLabel || cfg?.title || DEFAULT_NAV_LABELS[view];
-    links.push({
-      view,
-      label,
-      href: view === 'home' ? '#' : `#${view}`,
-    });
-  }
-  for (const link of links) {
-    const a = document.createElement('a');
-    a.href = link.href;
-    a.className = 'nav-link';
-    a.dataset.nav = '';
-    a.dataset.view = link.view;
-    a.textContent = link.label;
-    siteNav.appendChild(a);
-  }
-}
-
 function renderFooter(business, siteConfig) {
   const extras = document.getElementById('footer-extras');
   if (!extras) return;
@@ -560,8 +611,7 @@ export function applySiteConfig(business) {
 
   applySectionUi(map, business);
 
-  const siteNav = document.getElementById('site-nav');
-  rebuildNav(siteConfig, siteNav);
+  rebuildSiteNavigation(siteConfig);
   renderFooter(business, siteConfig);
 
   return {
