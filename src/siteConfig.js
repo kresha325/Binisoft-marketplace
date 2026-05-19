@@ -1,4 +1,4 @@
-import { resolveGoogleMapsOpenUrl, resolveMapsEmbedSrc } from './googleMapsUrl.js';
+import { resolveGoogleMapsOpenUrl } from './googleMapsUrl.js';
 import {
   openWhatsApp,
   resolveContactCtaLabel,
@@ -448,92 +448,87 @@ function renderGallery(cfg) {
   }
 }
 
-function renderFooter(business, siteConfig) {
-  const extras = document.getElementById('footer-extras');
-  if (!extras) return;
-  extras.replaceChildren();
-  const cfg = siteConfig || {};
-  const map = sectionMap(cfg);
+const FOOTER_LOCATION_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
 
-  const hoursLine = String(business?.openingHours || '').trim();
-  if (cfg.footerShowLocation !== false && hoursLine) {
-    const hoursEl = document.createElement('p');
-    hoursEl.className = 'footer-line footer-line--hours';
-    hoursEl.textContent = hoursLine;
-    extras.appendChild(hoursEl);
+function footerMonogram(name) {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+  }
+  return (parts[0] || 'B').slice(0, 2).toUpperCase();
+}
+
+function renderFooter(business, siteConfig) {
+  const brandEl = document.getElementById('footer-brand');
+  const centerEl = document.getElementById('footer-center');
+  if (!brandEl || !centerEl) return;
+  brandEl.replaceChildren();
+  centerEl.replaceChildren();
+  const cfg = siteConfig || {};
+
+  const name = String(business?.name || '').trim() || 'Biznesi';
+  const logoUrl = String(business?.logoUrl || '').trim();
+
+  if (logoUrl) {
+    const img = document.createElement('img');
+    img.className = 'footer-brand__logo';
+    img.src = logoUrl;
+    img.alt = `${name} logo`;
+    img.loading = 'lazy';
+    brandEl.appendChild(img);
+  } else {
+    const mono = document.createElement('div');
+    mono.className = 'footer-brand__monogram';
+    mono.textContent = footerMonogram(name);
+    mono.setAttribute('aria-hidden', 'true');
+    brandEl.appendChild(mono);
+  }
+
+  const title = document.createElement('p');
+  title.className = 'footer-brand__name';
+  title.textContent = name;
+  brandEl.appendChild(title);
+
+  const postal = String(business?.postalCode || '').trim();
+  const city = String(business?.city || '').trim();
+  const state = String(business?.state || '').trim();
+  for (const line of [postal, city, state]) {
+    if (!line) continue;
+    const p = document.createElement('p');
+    p.className = 'footer-brand__line';
+    p.textContent = line;
+    brandEl.appendChild(p);
   }
 
   const locationLine = formatBusinessLocation(business);
-  if (cfg.footerShowLocation !== false && locationLine) {
-    const mapsOpen = resolveGoogleMapsOpenUrl(business, locationLine);
-    const locEl = document.createElement(mapsOpen ? 'a' : 'p');
-    locEl.className = mapsOpen
-      ? 'footer-line footer-line--location location-action'
-      : 'footer-line footer-line--location';
-    locEl.textContent = locationLine;
-    if (mapsOpen) {
-      locEl.href = mapsOpen;
-      locEl.target = '_blank';
-      locEl.rel = 'noopener noreferrer';
-      locEl.title = 'Hap në Google Maps';
-    }
-    extras.appendChild(locEl);
+  const mapsOpen =
+    cfg.footerShowLocation !== false
+      ? resolveGoogleMapsOpenUrl(business, locationLine)
+      : '';
+  if (mapsOpen) {
+    const locLink = document.createElement('a');
+    locLink.className = 'footer-location-link';
+    locLink.href = mapsOpen;
+    locLink.target = '_blank';
+    locLink.rel = 'noopener noreferrer';
+    locLink.title = locationLine ? `Hap në Google Maps — ${locationLine}` : 'Hap në Google Maps';
+    locLink.setAttribute('aria-label', locationLine || 'Google Maps');
+    locLink.innerHTML = FOOTER_LOCATION_SVG;
+    centerEl.appendChild(locLink);
   }
 
-  const website = String(business?.website || '').trim();
-  if (cfg.footerShowLocation !== false && website) {
-    const href = website.startsWith('http') ? website : `https://${website}`;
-    const siteEl = document.createElement('a');
-    siteEl.className = 'footer-line footer-line--website';
-    siteEl.href = href;
-    siteEl.target = '_blank';
-    siteEl.rel = 'noopener noreferrer';
-    siteEl.textContent = website.replace(/^https?:\/\//i, '');
-    extras.appendChild(siteEl);
-  }
-
-  const embedSrc = resolveMapsEmbedSrc(business);
-  if (cfg.footerShowLocation !== false && embedSrc) {
-    const mapWrap = document.createElement('div');
-    mapWrap.className = 'footer-map';
-    const iframe = document.createElement('iframe');
-    iframe.src = embedSrc;
-    iframe.title = 'Google Maps';
-    iframe.loading = 'lazy';
-    iframe.referrerPolicy = 'no-referrer-when-downgrade';
-    iframe.allowFullscreen = true;
-    mapWrap.appendChild(iframe);
-    extras.appendChild(mapWrap);
-  }
-
-  const phone = business?.orderPhone || '';
-  const digits = String(phone).replace(/\D/g, '');
-  if (cfg.footerShowPhone !== false && digits) {
-    const a = document.createElement('a');
-    a.className = 'footer-line';
-    a.href = `tel:+${digits}`;
-    a.textContent = phone;
-    extras.appendChild(a);
-  }
-
-  if (cfg.footerShowWhatsApp !== false && digits) {
-    const contactCfg = map.get('contact');
-    const wa = document.createElement('a');
-    wa.className = 'footer-wa-btn';
-    wa.href = `https://wa.me/${digits}`;
-    wa.target = '_blank';
-    wa.rel = 'noopener noreferrer';
-    wa.textContent = resolveContactCtaLabel(contactCfg, business) || 'WhatsApp';
-    extras.appendChild(wa);
-  }
-
-  const socials = cfg.socials || [];
+  const socials = (cfg.socials || []).filter((s) => String(s?.url || '').trim());
   if (socials.length) {
     const row = document.createElement('div');
     row.className = 'footer-socials';
     row.setAttribute('role', 'list');
     for (const s of socials) {
-      const href = s.url?.startsWith('http') ? s.url : `https://${s.url}`;
+      const raw = String(s.url).trim();
+      const href = raw.startsWith('http') ? raw : `https://${raw}`;
       const a = document.createElement('a');
       a.href = href;
       a.className = `footer-social footer-social--${s.platform}`;
@@ -543,14 +538,8 @@ function renderFooter(business, siteConfig) {
       a.innerHTML = SOCIAL_SVG[s.platform] || '';
       row.appendChild(a);
     }
-    extras.appendChild(row);
+    centerEl.appendChild(row);
   }
-
-  const powered = document.createElement('p');
-  powered.className = 'footer-powered';
-  powered.innerHTML =
-    'Faqe e biznesit nga <a href="https://binisoft.github.io/binisoft-ad/" target="_blank" rel="noopener noreferrer">Binisoft</a>';
-  extras.appendChild(powered);
 }
 
 /**
