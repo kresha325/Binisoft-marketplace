@@ -2382,6 +2382,18 @@ body.layout-wide .gallery-site-grid {
 }
 
 /* ── Global marketplace (/) ── */
+body[data-mode='marketplace'] #hero,
+body[data-mode='marketplace'] #offers,
+body[data-mode='marketplace'] #shop-services,
+body[data-mode='marketplace'] #about,
+body[data-mode='marketplace'] #gallery,
+body[data-mode='marketplace'] #contact,
+body[data-mode='marketplace'] .catalog-head,
+body[data-mode='marketplace'] .nav-toggle,
+body[data-mode='marketplace'] .site-nav {
+  display: none !important;
+}
+
 body[data-mode='marketplace'] .main {
   max-width: 1200px;
   margin: 0 auto;
@@ -2389,8 +2401,24 @@ body[data-mode='marketplace'] .main {
   width: 100%;
 }
 
+body[data-mode='marketplace'] #shop-products.marketplace-catalog-section,
+body[data-mode='marketplace'] #shop-products {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+
 body[data-mode='marketplace'] #catalog {
   display: block;
+}
+
+body[data-mode='marketplace'] .brand-name {
+  font-weight: 700;
+}
+
+body[data-mode='marketplace'] .site-header {
+  border-bottom: 1px solid var(--border);
 }
 
 .marketplace {
@@ -2525,9 +2553,28 @@ body[data-mode='marketplace'] #catalog {
 }
 
 .market-store-card__cover {
-  height: 100px;
+  height: 128px;
   background-size: cover;
   background-position: center;
+  background-color: var(--navy-light);
+}
+
+.market-store-card__cover--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--yellow) 22%, var(--navy-light)),
+    var(--navy-light)
+  );
+}
+
+.market-store-card__cover--placeholder span {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: color-mix(in srgb, var(--yellow) 70%, var(--text));
+  opacity: 0.9;
 }
 
 .market-store-card__body {
@@ -2535,16 +2582,79 @@ body[data-mode='marketplace'] #catalog {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 8px;
   width: 100%;
+}
+
+.market-store-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.market-store-card__logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  background: var(--surface);
+}
+
+.market-store-card__logo--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+}
+
+.market-store-card__titles {
+  min-width: 0;
+  text-align: left;
+}
+
+.market-store-card__titles h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.market-store-card__titles .business-card-slug {
+  margin: 0;
 }
 
 .market-store-card__counts {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 10px 0;
   font-size: 0.75rem;
   color: var(--muted);
+}
+
+.market-store-card__counts span {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid var(--border);
+}
+
+.market-store-card__cta {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--yellow);
+}
+
+.market-store-card:hover .market-store-card__cta {
+  text-decoration: underline;
+}
+
+.market-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
 }
 
 .market-card-desc {

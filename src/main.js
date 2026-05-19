@@ -1472,21 +1472,57 @@ function initThemeToggle() {
   });
 }
 
-async function renderMarketplaceHome() {
+const MARKETPLACE_ONLY_HIDDEN = [
+  '#hero',
+  '#offers',
+  '#shop-services',
+  '#about',
+  '#gallery',
+  '#contact',
+];
+
+function applyMarketplaceLayout() {
   document.body.dataset.mode = 'marketplace';
+  document.body.dataset.shopView = 'marketplace';
+  document.body.classList.remove('shop-cart-disabled');
+  MARKETPLACE_ONLY_HIDDEN.forEach((sel) => {
+    document.querySelector(sel)?.classList.add('hidden');
+  });
+  document.querySelector('.catalog-head')?.classList.add('hidden');
+  document.getElementById('shop-products')?.classList.add('marketplace-catalog-section');
+  siteNav?.classList.add('hidden');
+  navToggle?.classList.add('hidden');
+  heroTrust?.classList.add('hidden');
+  storeBottomNav?.classList.add('hidden');
+  cartToggleBtn?.classList.remove('hidden');
+  displayShopName('Marketplace');
+  if (brandLink) {
+    brandLink.href = marketplaceHomePath();
+    brandLink.setAttribute('aria-label', 'Binisoft Marketplace — Kreu');
+  }
+  if (footerName) footerName.textContent = 'Binisoft Marketplace';
+  refreshShopCheckoutUi();
+}
+
+function applyStoreLayoutShell() {
+  document.body.dataset.mode = 'store';
+  MARKETPLACE_ONLY_HIDDEN.forEach((sel) => {
+    document.querySelector(sel)?.classList.remove('hidden');
+  });
+  document.querySelector('.catalog-head')?.classList.remove('hidden');
+  document.getElementById('shop-products')?.classList.remove('marketplace-catalog-section');
+  siteNav?.classList.remove('hidden');
+  navToggle?.classList.remove('hidden');
+  heroTrust?.classList.remove('hidden');
+  storeBottomNav?.classList.remove('hidden');
+}
+
+async function renderMarketplaceHome() {
   storeBusinessProfile = null;
   storeCheckoutConfig = null;
   clearProStoreTheme();
   hideThemeToggle();
-  heroTrust?.classList.add('hidden');
-  storeBottomNav?.classList.add('hidden');
-  offersSection.classList.add('hidden');
-  servicesSection?.classList.add('hidden');
-  document.querySelector('.catalog-head')?.classList.add('hidden');
-  document.getElementById('hero')?.classList.add('hidden');
-  document.querySelector('.site-nav')?.classList.add('hidden');
-  displayShopName('Marketplace');
-  if (brandLink) brandLink.href = marketplaceHomePath();
+  applyMarketplaceLayout();
 
   await loadMarketplace({
     catalogEl,
@@ -1620,15 +1656,11 @@ async function loadShop() {
 
   const slug = getSlug();
 
-  document.body.dataset.mode = 'store';
-  heroTrust?.classList.remove('hidden');
-  storeBottomNav?.classList.remove('hidden');
+  applyStoreLayoutShell();
   if (brandLink) brandLink.href = shopPathFor(getSlug());
   offersSection.classList.remove('hidden');
   servicesSection?.classList.remove('hidden');
-  document.querySelector('.catalog-head')?.classList.remove('hidden');
   document.getElementById('hero')?.classList.remove('hidden');
-  document.querySelector('.site-nav')?.classList.remove('hidden');
   closeMobileNav();
   catalogEl.innerHTML = catalogSkeletonHtml(6);
 

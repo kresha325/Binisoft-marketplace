@@ -61,6 +61,21 @@ function renderTabs() {
     </div>`;
 }
 
+function storeCoverHtml(b) {
+  if (b.coverImageUrl) {
+    return `<div class="market-store-card__cover" style="background-image:url(${escapeHtml(b.coverImageUrl)})"></div>`;
+  }
+  const initial = escapeHtml((b.name || '?').trim().slice(0, 1).toUpperCase());
+  return `<div class="market-store-card__cover market-store-card__cover--placeholder" aria-hidden="true"><span>${initial}</span></div>`;
+}
+
+function storeLogoHtml(b) {
+  if (b.logoUrl) {
+    return `<img src="${escapeHtml(b.logoUrl)}" alt="" class="market-store-card__logo" loading="lazy" decoding="async" />`;
+  }
+  return '<div class="market-store-card__logo market-store-card__logo--placeholder" aria-hidden="true">🛒</div>';
+}
+
 function renderStores(businesses) {
   const list = filterBySearch(businesses, ['name', 'slug', 'description', 'location']);
   if (!list.length) {
@@ -69,28 +84,37 @@ function renderStores(businesses) {
   return `
     <div class="business-grid market-grid">
       ${list
-        .map(
-          (b) => `
+        .map((b) => {
+          const desc = b.description ? String(b.description) : '';
+          const descHtml =
+            desc.length > 120
+              ? `${escapeHtml(desc.slice(0, 120))}…`
+              : escapeHtml(desc);
+          return `
         <a class="business-card market-store-card" href="${escapeHtml(shopPathFor(b.slug))}">
-          ${b.coverImageUrl ? `<div class="market-store-card__cover" style="background-image:url(${escapeHtml(b.coverImageUrl)})"></div>` : ''}
+          ${storeCoverHtml(b)}
           <div class="market-store-card__body">
-            ${b.logoUrl ? `<img src="${escapeHtml(b.logoUrl)}" alt="" class="business-card-logo" />` : '<div class="business-card-logo business-card-logo--placeholder">🛒</div>'}
-            <h3>${escapeHtml(b.name)}</h3>
-            ${b.description ? `<p class="market-card-desc">${escapeHtml(b.description)}</p>` : ''}
+            <div class="market-store-card__head">
+              ${storeLogoHtml(b)}
+              <div class="market-store-card__titles">
+                <h3>${escapeHtml(b.name)}</h3>
+                <span class="business-card-slug">/${escapeHtml(b.slug)}</span>
+              </div>
+            </div>
+            ${desc ? `<p class="market-card-desc">${descHtml}</p>` : ''}
             ${b.location ? `<p class="muted market-card-meta">📍 ${escapeHtml(b.location)}</p>` : ''}
             <div class="market-store-card__counts">
               <span>${b.productCount ?? 0} produkte</span>
-              <span>${b.categoryCount ?? 0} kategori</span>
-              <span>${b.offerCount ?? 0} oferta</span>
+              ${(b.categoryCount ?? 0) > 0 ? `<span>${b.categoryCount} kategori</span>` : ''}
+              ${(b.offerCount ?? 0) > 0 ? `<span>${b.offerCount} oferta</span>` : ''}
             </div>
-            <span class="business-card-slug">/${escapeHtml(b.slug)}</span>
+            <span class="market-store-card__cta">Hyr në dyqan →</span>
           </div>
-        </a>`,
-        )
+        </a>`;
+        })
         .join('')}
     </div>`;
 }
-
 function renderProducts(products) {
   const list = filterBySearch(products, ['name', 'businessName', 'businessSlug']);
   if (!list.length) {
