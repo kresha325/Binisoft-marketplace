@@ -97,6 +97,7 @@
           <p id="shop-slug" class="muted shop-slug-line hidden"></p>
         </div>
         <div id="catalog" class="catalog"><p class="loading">Duke ngarkuar…</p></div>
+        <div id="catalog-actions" class="catalog-actions hidden"></div>
       </section>
 
       <section id="about" class="info-section about-section">
@@ -166,21 +167,25 @@
       <div class="cart-inner">
         <div class="cart-head"><h2 id="cart-title">Shporta</h2><button type="button" id="cart-close" class="cart-close-btn" aria-label="Mbyll">×</button></div>
         <div id="pending-order" class="pending-order hidden" aria-live="polite"></div>
-        <ul id="cart-lines" class="cart-lines"></ul>
-        <p id="cart-empty" class="cart-empty-msg muted">Shporta është bosh.</p>
+        <div class="cart-body">
+          <ul id="cart-lines" class="cart-lines"></ul>
+          <p id="cart-empty" class="cart-empty-msg muted">Shporta është bosh.</p>
+        </div>
         <div class="cart-footer">
-          <p id="cart-total" class="cart-total-line"></p>
-          <pre id="order-preview" class="order-preview hidden" aria-label="Përmbledhje porosie"></pre>
-          <div class="checkout-form">
-            <label for="customer-name">Emri dhe mbiemri</label>
-            <input id="customer-name" type="text" autocomplete="name" placeholder="p.sh. Arben Krasniqi" required />
-            <label for="customer-address">Adresa e dorëzimit</label>
-            <input id="customer-address" type="text" autocomplete="street-address" placeholder="Rruga, nr., qyteti" required />
-            <label for="order-notes">Kërkesa për porosinë <span class="muted">(opsionale)</span></label>
-            <textarea id="order-notes" rows="3" placeholder="p.sh. pa domate, koha e preferuar, hyrja e pallatit…"></textarea>
-            <label for="customer-phone">Telefoni <span class="muted">(opsionale)</span></label>
-            <input id="customer-phone" type="tel" autocomplete="tel" placeholder="+383 44 123 456" />
-            <p class="checkout-field-hint muted">Porosia dërgohet nga WhatsApp-i juaj; numri është vetëm nëse dëshironi ta shënoni këtu.</p>
+          <div class="cart-summary-bar">
+            <span id="cart-item-count" class="cart-item-count"></span>
+            <p id="cart-total" class="cart-total-line"></p>
+          </div>
+          <pre id="order-preview" class="order-preview hidden" aria-hidden="true"></pre>
+          <div class="checkout-form checkout-form--compact">
+            <label for="customer-name" class="visually-hidden">Emri dhe mbiemri</label>
+            <input id="customer-name" type="text" autocomplete="name" placeholder="Emri dhe mbiemri" required />
+            <label for="customer-address" class="visually-hidden">Adresa</label>
+            <input id="customer-address" type="text" autocomplete="street-address" placeholder="Adresa e dorëzimit" required />
+            <label for="order-notes" class="visually-hidden">Kërkesa</label>
+            <textarea id="order-notes" rows="2" placeholder="Kërkesa (opsionale)"></textarea>
+            <label for="customer-phone" class="visually-hidden">Telefoni</label>
+            <input id="customer-phone" type="tel" autocomplete="tel" placeholder="Telefoni (opsionale)" />
             <div class="send-actions">
               <button type="button" id="btn-whatsapp" class="send-btn send-btn--wa" disabled>WhatsApp</button>
               <button type="button" id="btn-sms" class="send-btn send-btn--sms" disabled>SMS</button>

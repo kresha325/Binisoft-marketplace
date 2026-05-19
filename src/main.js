@@ -81,10 +81,13 @@ const servicesSection = $('#shop-services');
 const servicesListEl = $('#services-list');
 const servicesEmptyEl = $('#services-empty');
 const catalogEl = $('#catalog');
+const catalogActionsEl = $('#catalog-actions');
+const CATALOG_PREVIEW_LIMIT = 8;
 const cartPanel = $('#cart-panel');
 const cartLines = $('#cart-lines');
 const cartEmpty = $('#cart-empty');
 const cartTotalEl = $('#cart-total');
+const cartItemCountEl = $('#cart-item-count');
 const cartCountEl = $('#cart-count');
 const orderPreview = $('#order-preview');
 const orderNotes = $('#order-notes');
@@ -131,6 +134,7 @@ let storeSectionMap = null;
 let products = [];
 let categories = [];
 let selectedCategoryId = '';
+let catalogExpanded = false;
 let shopLogoUrl = '';
 let offers = [];
 let services = [];
@@ -148,6 +152,12 @@ const orderHeaders = (slug = getSlug()) => {
 
 function formatEuro(n) {
   return `€${Number(n).toFixed(2)}`;
+}
+
+function formatCartItemCount(n) {
+  const c = Number(n) || 0;
+  if (c === 1) return '1 artikull';
+  return `${c} artikuj`;
 }
 
 function displayShopName(name) {
@@ -411,9 +421,20 @@ function highlightShopNav(view, { updateHash = true } = {}) {
   return key;
 }
 
+function shouldLimitCatalogPreview() {
+  if (!isStoreMode()) return false;
+  return !catalogExpanded;
+}
+
 function setShopView(view, options = {}) {
   const key = highlightShopNav(view, { updateHash: options.updateHash !== false });
   closeMobileNav();
+
+  if (key === 'products' && !options.fromScroll) {
+    catalogExpanded = true;
+  } else if (options.fromScroll && key !== 'products' && catalogExpanded && isStoreMode()) {
+    catalogExpanded = false;
+  }
 
   if (isStoreMode()) {
     SHOP_SECTION_IDS.forEach((id) => {
@@ -433,7 +454,7 @@ function setShopView(view, options = {}) {
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  if (key === 'products' && products.length) renderCatalog();
+  if (products.length) renderCatalog();
   if (key === 'services' && services.length) renderServices();
 }
 
@@ -530,7 +551,6 @@ function addOfferProductToCart(productId, salePrice) {
   const product = productForCart(productId, salePrice);
   if (!product) return;
   renderCart(addToCart(product, 1, null, getSlug()));
-  openCart();
 }
 
 function phoneDigits(phone) {
@@ -851,18 +871,64 @@ async function pollOrderStatus() {
 }
 
 function updateOrderPreview() {
-  if (hasActivePending()) {
-    orderPreview.classList.add('hidden');
-    return;
+  const cart = hasActivePending() ? getPending()?.cart || [] : loadCart();
+  orderPreview.textContent = cart.length
+    ? buildOrderMessage(cart, readCheckoutFields())
+    : '';
+  orderPreview.classList.add('hidden');
+}
+
+function cartItemImageUrl(item) {
+  if (item.imageUrl) return item.imageUrl;
+  const p = products.find((x) => x.id === item.productId);
+  return p?.imageUrls?.[0] || null;
+}
+
+function cartLineMediaHtml(item) {
+  const url = cartItemImageUrl(item);
+  if (url) {
+    return `<div class="cart-line__media"><img src="${escapeHtml(url)}" alt="" loading="lazy" decoding="async" /></div>`;
   }
-  const cart = loadCart();
-  if (!cart.length) {
-    orderPreview.classList.add('hidden');
-    orderPreview.textContent = '';
-    return;
-  }
-  orderPreview.textContent = buildOrderMessage(cart, readCheckoutFields());
-  orderPreview.classList.remove('hidden');
+  const initial = escapeHtml((item.name || '?').trim().slice(0, 1).toUpperCase());
+  return `<div class="cart-line__media cart-line__media--placeholder" aria-hidden="true"><span>${initial}</span></div>`;
+}
+
+function shortCartName(name) {
+  const s = String(name || '');
+  const paren = s.indexOf(' (');
+  return paren > 0 ? s.slice(0, paren) : s;
+}
+
+function cartLineVariantHint(name) {
+  const m = String(name || '').match(/\(([^)]+)\)\s*$/);
+  return m ? m[1] : '';
+}
+
+function cartLineHtml(item, locked, multiBiz) {
+  const subtotal = item.price * item.quantity;
+  const variantHint = cartLineVariantHint(item.name);
+  const slugAttr = escapeHtml(item.businessSlug || '');
+  const variantAttr = item.variantId || '';
+  return `
+    <li class="cart-line${locked ? ' cart-line--locked' : ''}">
+      ${cartLineMediaHtml(item)}
+      <div class="cart-line__body">
+        <div class="cart-line__top">
+          <p class="cart-line__name">${escapeHtml(shortCartName(item.name))}</p>
+          <p class="cart-line__total" aria-label="Nëntotali">${formatEuro(subtotal)}</p>
+        </div>
+        ${variantHint ? `<p class="cart-line__variant">${escapeHtml(variantHint)}</p>` : ''}
+        ${multiBiz && item.businessSlug ? `<p class="cart-line__store">/${escapeHtml(item.businessSlug)}</p>` : ''}
+        <div class="cart-line__bottom">
+          <span class="cart-line__unit">${formatEuro(item.price)} · copë</span>
+          <div class="qty-controls" aria-label="Sasia">
+            <button type="button" class="qty-btn" data-dec="${item.productId}" data-variant-id="${variantAttr}" data-slug="${slugAttr}" ${locked ? 'disabled' : ''} aria-label="Zbrit sasinë">−</button>
+            <span class="qty-value" aria-live="polite">${item.quantity}</span>
+            <button type="button" class="qty-btn" data-inc="${item.productId}" data-variant-id="${variantAttr}" data-slug="${slugAttr}" ${locked ? 'disabled' : ''} aria-label="Shto sasinë">+</button>
+          </div>
+        </div>
+      </div>
+    </li>`;
 }
 
 function priceHtml(price, originalPrice, onOffer) {
@@ -1000,8 +1066,12 @@ function filteredProducts() {
 
 function renderCategoryFilters() {
   const head = document.querySelector('.catalog-head');
-  if (!head || !categories.length) return;
-  let bar = document.getElementById('category-filters');
+  const existing = document.getElementById('category-filters');
+  if (!head || !categories.length || shouldLimitCatalogPreview()) {
+    existing?.remove();
+    return;
+  }
+  let bar = existing;
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'category-filters';
@@ -1027,6 +1097,39 @@ function renderCategoryFilters() {
   });
 }
 
+function renderCatalogActions(totalCount, shownCount) {
+  if (!catalogActionsEl) return;
+  const hiddenCount = totalCount - shownCount;
+  if (!shouldLimitCatalogPreview() || hiddenCount <= 0) {
+    if (catalogExpanded && isStoreMode() && totalCount > CATALOG_PREVIEW_LIMIT) {
+      catalogActionsEl.innerHTML = `
+        <button type="button" class="catalog-expand-btn catalog-expand-btn--less" data-catalog-collapse>
+          Më pak
+        </button>`;
+      catalogActionsEl.classList.remove('hidden');
+      catalogActionsEl.querySelector('[data-catalog-collapse]')?.addEventListener('click', () => {
+        catalogExpanded = false;
+        renderCatalog();
+      });
+      return;
+    }
+    catalogActionsEl.innerHTML = '';
+    catalogActionsEl.classList.add('hidden');
+    return;
+  }
+
+  catalogActionsEl.innerHTML = `
+    <button type="button" class="catalog-expand-btn" data-catalog-expand>
+      Shiko më shumë (${hiddenCount})
+    </button>`;
+  catalogActionsEl.classList.remove('hidden');
+  catalogActionsEl.querySelector('[data-catalog-expand]')?.addEventListener('click', () => {
+    catalogExpanded = true;
+    renderCatalog();
+    document.getElementById('shop-products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
 function renderCatalog() {
   renderCategoryFilters();
   const list = filteredProducts();
@@ -1037,10 +1140,15 @@ function renderCatalog() {
         ? 'Zgjidhni një kategori tjetër.'
         : 'Biznesi nuk ka publikuar produkte ende.',
     });
+    renderCatalogActions(0, 0);
     return;
   }
 
-  catalogEl.innerHTML = list
+  const limited = shouldLimitCatalogPreview();
+  const visible = limited ? list.slice(0, CATALOG_PREVIEW_LIMIT) : list;
+  catalogEl.classList.toggle('catalog--preview', limited);
+
+  catalogEl.innerHTML = visible
     .map(
       (p) => `
     <article class="product-card${p.onOffer ? ' product-card--offer' : ''}" data-id="${p.id}">
@@ -1056,6 +1164,8 @@ function renderCatalog() {
   `,
     )
     .join('');
+
+  renderCatalogActions(list.length, visible.length);
 
   catalogEl.querySelectorAll('[data-gallery]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
@@ -1074,7 +1184,6 @@ function renderCatalog() {
       if (!product) return;
       const variant = selectedVariant(product);
       renderCart(addToCart(product, 1, variant, getSlug()));
-      openCart();
     });
   });
 }
@@ -1103,33 +1212,20 @@ function renderCart(cart = null) {
     cartLines.innerHTML = '';
     cartEmpty.classList.remove('hidden');
     cartTotalEl.textContent = '';
+    if (cartItemCountEl) cartItemCountEl.textContent = '';
     orderPreview.classList.add('hidden');
     return;
   }
 
   cartEmpty.classList.add('hidden');
-  cartTotalEl.textContent = `Total: ${formatEuro(cartTotal(displayCart))}`;
+  cartTotalEl.textContent = formatEuro(cartTotal(displayCart));
+  if (cartItemCountEl) cartItemCountEl.textContent = formatCartItemCount(count);
   updateOrderPreview();
 
   const multiBiz = cartBusinessSlugs(displayCart).length > 1;
 
   cartLines.innerHTML = displayCart
-    .map(
-      (item) => `
-    <li class="cart-line${locked ? ' cart-line--locked' : ''}">
-      <div>
-        <strong>${escapeHtml(item.name)}</strong>
-        ${multiBiz && item.businessSlug ? `<span class="muted cart-line-slug">/${escapeHtml(item.businessSlug)}</span>` : ''}
-        <span class="muted">${formatEuro(item.price)}</span>
-      </div>
-      <div class="qty-controls">
-        <button type="button" data-dec="${item.productId}" data-variant-id="${item.variantId || ''}" data-slug="${escapeHtml(item.businessSlug || '')}" ${locked ? 'disabled' : ''}>−</button>
-        <span>${item.quantity}</span>
-        <button type="button" data-inc="${item.productId}" data-variant-id="${item.variantId || ''}" data-slug="${escapeHtml(item.businessSlug || '')}" ${locked ? 'disabled' : ''}>+</button>
-      </div>
-    </li>
-  `,
-    )
+    .map((item) => cartLineHtml(item, locked, multiBiz))
     .join('');
 
   if (!locked) {
@@ -1486,6 +1582,7 @@ async function loadShop() {
   requestAnimationFrame(() => setShopView(parseShopViewFromHash()));
   categories = data.categories || [];
   selectedCategoryId = '';
+  catalogExpanded = !isStoreMode() || parseShopViewFromHash() === 'products';
   products = data.products || [];
   const countEl = document.getElementById('catalog-count');
   if (countEl && data.productCount != null) {

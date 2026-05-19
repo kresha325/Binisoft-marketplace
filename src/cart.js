@@ -70,6 +70,7 @@ export function addToCart(product, qty = 1, variant = null, businessSlug = null)
       name,
       price,
       quantity: qty,
+      imageUrl: product.imageUrls?.[0] || null,
     });
   }
   saveCart(cart);
