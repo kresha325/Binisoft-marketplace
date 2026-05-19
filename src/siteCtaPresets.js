@@ -6,7 +6,15 @@ const GENERIC_ORDER_LABELS = new Set([
   'view products',
 ]);
 
-const FOOD_ORDER = new Set(['restaurant', 'cafe', 'fastFood']);
+const FOOD_ORDER = new Set([
+  'restaurant',
+  'pizzeria',
+  'cafe',
+  'fastFood',
+  'bar',
+  'catering',
+  'iceCream',
+]);
 const RETAIL_ORDER = new Set([
   'retail',
   'fashion',
@@ -14,6 +22,10 @@ const RETAIL_ORDER = new Set([
   'grocery',
   'bakery',
   'wholesale',
+  'butcher',
+  'flowerShop',
+  'jewelry',
+  'bookstore',
   'pharmacy',
   'agriculture',
   'petShop',
