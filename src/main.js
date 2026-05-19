@@ -93,7 +93,6 @@ const heroCta = $('#hero-cta');
 const heroCtaServices = $('#hero-cta-services');
 const heroTrust = $('#hero-trust');
 const heroStats = $('#hero-stats');
-const headerOrderCta = $('#header-order-cta');
 const contactCards = $('#contact-cards');
 const aboutText = $('#about-text');
 const contactText = $('#contact-text');
@@ -104,6 +103,10 @@ const navToggle = $('#nav-toggle');
 const siteNav = $('#site-nav');
 const brandLink = $('#brand-link');
 const langSwitcherEl = $('#lang-switcher');
+const langModal = $('#lang-modal');
+const langModalBackdrop = $('#lang-modal-backdrop');
+const langModalClose = $('#lang-modal-close');
+const langModalOptions = $('#lang-modal-options');
 const storeBottomNav = $('#store-bottom-nav');
 const bottomCartBtn = $('#bottom-cart');
 const bottomCartCount = $('#bottom-cart-count');
@@ -458,11 +461,6 @@ function initSiteNav() {
 
   heroCta?.addEventListener('click', () => setShopView('products'));
   heroCtaServices?.addEventListener('click', () => setShopView('services'));
-  headerOrderCta?.addEventListener('click', () => {
-    setShopView('products');
-    openCart();
-  });
-
   window.addEventListener('hashchange', () => setShopView(parseShopViewFromHash()));
 
   storeBottomNav?.querySelectorAll('[data-bottom-nav]').forEach((btn) => {
@@ -1205,7 +1203,6 @@ async function loadServices() {
 async function renderMarketplaceHome() {
   document.body.dataset.mode = 'marketplace';
   clearProStoreTheme();
-  headerOrderCta?.classList.add('hidden');
   heroTrust?.classList.add('hidden');
   storeBottomNav?.classList.add('hidden');
   offersSection.classList.add('hidden');
@@ -1229,6 +1226,54 @@ function showOrderKeyHint() {
   /* Public customer shop — no API key required. */
 }
 
+function closeLangModal() {
+  if (!langModal) return;
+  langModal.classList.add('hidden');
+  langModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('lang-modal-open');
+  langSwitcherEl?.setAttribute('aria-expanded', 'false');
+}
+
+function openLangModal() {
+  if (!langModal || !langModalOptions) return;
+  const { locales } = getCatalogMeta();
+  const active = getShopLocale();
+  const available = locales.filter((code) => LOCALE_LABELS[code]);
+  langModalOptions.replaceChildren();
+  for (const code of available) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `lang-modal-option${code === active ? ' is-active' : ''}`;
+    btn.setAttribute('role', 'option');
+    btn.setAttribute('aria-selected', code === active ? 'true' : 'false');
+    btn.textContent = LOCALE_LABELS[code] || code.toUpperCase();
+    btn.addEventListener('click', () => {
+      closeLangModal();
+      if (code !== active) setShopLocale(code);
+    });
+    langModalOptions.appendChild(btn);
+  }
+  langModal.classList.remove('hidden');
+  langModal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('lang-modal-open');
+  langSwitcherEl?.setAttribute('aria-expanded', 'true');
+  langModalClose?.focus();
+}
+
+function initLangModal() {
+  langSwitcherEl?.addEventListener('click', () => {
+    if (langModal?.classList.contains('hidden')) openLangModal();
+    else closeLangModal();
+  });
+  langModalBackdrop?.addEventListener('click', closeLangModal);
+  langModalClose?.addEventListener('click', closeLangModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && langModal && !langModal.classList.contains('hidden')) {
+      closeLangModal();
+    }
+  });
+}
+
 function renderLangSwitcher() {
   if (!langSwitcherEl) return;
   const { locales } = getCatalogMeta();
@@ -1236,23 +1281,11 @@ function renderLangSwitcher() {
   const available = locales.filter((code) => LOCALE_LABELS[code]);
   if (available.length <= 1) {
     langSwitcherEl.hidden = true;
-    langSwitcherEl.replaceChildren();
     return;
   }
   langSwitcherEl.hidden = false;
-  langSwitcherEl.replaceChildren();
-  available.forEach((code) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `lang-switcher__btn${code === active ? ' is-active' : ''}`;
-    btn.textContent = LOCALE_LABELS[code] || code.toUpperCase();
-    btn.setAttribute('aria-pressed', code === active ? 'true' : 'false');
-    btn.setAttribute('lang', code);
-    if (code !== active) {
-      btn.addEventListener('click', () => setShopLocale(code));
-    }
-    langSwitcherEl.appendChild(btn);
-  });
+  langSwitcherEl.textContent = LOCALE_LABELS[active] || active.toUpperCase();
+  langSwitcherEl.setAttribute('lang', active);
 }
 
 function applyShopSeo(business) {
@@ -1338,7 +1371,6 @@ async function loadShop() {
   const routing = applySiteConfig(business);
   applyProStoreTheme(business);
   if (heroCta) heroCta.textContent = 'Porosit tani';
-  headerOrderCta?.classList.remove('hidden');
   renderHeroStats(business);
   if (routing?.shopViews) SHOP_VIEWS = routing.shopViews;
   if (routing?.sectionIds?.length) SHOP_SECTION_IDS = routing.sectionIds;
@@ -1525,6 +1557,7 @@ function restorePendingOnLoad() {
 }
 
 initGallery();
+initLangModal();
 initSiteNav();
 
 $('#cart-toggle').addEventListener('click', openCart);

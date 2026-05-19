@@ -34,11 +34,10 @@
           <a href="#contact" class="nav-link" data-nav data-view="contact">Kontakt</a>
         </nav>
         <div class="header-actions">
-          <div id="lang-switcher" class="lang-switcher" hidden aria-label="Gjuha"></div>
+          <button type="button" id="lang-switcher" class="lang-switcher lang-switcher--trigger hidden" hidden aria-label="Gjuha" aria-haspopup="dialog" aria-controls="lang-modal"></button>
           <button type="button" id="nav-toggle" class="nav-toggle" aria-label="Hap menunë" aria-expanded="false" aria-controls="site-nav">
             <span></span><span></span><span></span>
           </button>
-          <button type="button" id="header-order-cta" class="header-order-cta hidden">Porosit tani</button>
           <button type="button" id="cart-toggle" class="cart-icon-btn" aria-label="Shporta">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="2"/>
@@ -206,6 +205,17 @@
       <div id="gallery-dots" class="gallery-dots"></div>
     </div>
   </div>
+  <div id="lang-modal" class="lang-modal hidden" aria-hidden="true" role="dialog" aria-labelledby="lang-modal-title">
+    <button type="button" class="lang-modal-backdrop" id="lang-modal-backdrop" aria-label="Mbyll"></button>
+    <div class="lang-modal-sheet">
+      <div class="lang-modal-head">
+        <h2 id="lang-modal-title">Gjuha</h2>
+        <button type="button" id="lang-modal-close" class="lang-modal-close" aria-label="Mbyll">×</button>
+      </div>
+      <div id="lang-modal-options" class="lang-modal-options" role="listbox" aria-labelledby="lang-modal-title"></div>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

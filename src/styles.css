@@ -140,43 +140,134 @@ body[data-mode='store'] .brand-logo.brand-logo--store {
   flex-shrink: 0;
 }
 
-.lang-switcher {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px;
+.lang-switcher--trigger {
+  min-width: 40px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.lang-switcher[hidden] {
+.lang-switcher--trigger:hover {
+  border-color: color-mix(in srgb, var(--yellow) 50%, var(--border));
+}
+
+.lang-switcher--trigger[hidden] {
   display: none !important;
 }
 
-.lang-switcher__btn {
-  min-width: 36px;
-  height: 32px;
-  padding: 0 8px;
+/* Language picker modal */
+.lang-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.lang-modal.hidden {
+  display: none;
+}
+
+body.lang-modal-open {
+  overflow: hidden;
+}
+
+.lang-modal-backdrop {
+  position: absolute;
+  inset: 0;
   border: none;
-  border-radius: 6px;
+  padding: 0;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.lang-modal-sheet {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 360px);
+  margin: 0 12px 12px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--surface, #fff);
+  color: var(--text);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 901px) {
+  .lang-modal {
+    align-items: center;
+  }
+
+  .lang-modal-sheet {
+    margin: 0;
+  }
+}
+
+.lang-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.lang-modal-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.lang-modal-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 1.5rem;
+  line-height: 1;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
 }
 
-.lang-switcher__btn:hover:not(.is-active) {
+.lang-modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lang-modal-option {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
   color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.lang-switcher__btn.is-active {
+.lang-modal-option:hover {
+  border-color: color-mix(in srgb, var(--yellow) 40%, var(--border));
+}
+
+.lang-modal-option.is-active {
   background: var(--yellow);
-  color: var(--yellow-text);
+  color: var(--yellow-text, #fff);
+  border-color: var(--yellow);
   cursor: default;
 }
 
@@ -1398,6 +1489,12 @@ code {
     display: flex;
   }
 
+  /* Store pages: bottom nav mjafton — pa burger / drawer */
+  body[data-mode='store'] .nav-toggle,
+  body[data-mode='store'] .site-nav {
+    display: none !important;
+  }
+
   .site-nav {
     display: none;
     position: fixed;
@@ -2295,44 +2392,6 @@ body.store-pro .nav-link {
 body.store-pro .nav-link.is-active {
   color: var(--yellow-text);
   background: var(--yellow);
-}
-
-body.store-pro .header-order-cta {
-  display: none;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 999px;
-  background: var(--yellow);
-  color: var(--yellow-text);
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--yellow) 40%, transparent);
-  transition: transform 0.15s, filter 0.15s;
-}
-
-body.store-pro .header-order-cta:not(.hidden) {
-  display: inline-flex;
-  align-items: center;
-}
-
-@media (min-width: 901px) {
-  body.store-pro .header-order-cta:not(.hidden) {
-    display: inline-flex;
-  }
-}
-
-body.store-pro .header-order-cta:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-}
-
-@media (max-width: 900px) {
-  body.store-pro .header-order-cta.hidden {
-    display: none !important;
-  }
 }
 
 body.store-pro .hero {
