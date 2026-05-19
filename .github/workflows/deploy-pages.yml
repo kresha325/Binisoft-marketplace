@@ -33,8 +33,10 @@ jobs:
           VITE_API_BASE_URL: https://us-central1-jon-sport.cloudfunctions.net/publicApi
         run: npm run build
 
-      - name: SPA fallback (client routes on refresh)
-        run: cp dist/index.html dist/404.html
+      - name: Store slug indexes + SPA fallback (GitHub Pages deep links)
+        run: |
+          node tool/generate-store-paths.mjs
+          cp dist/index.html dist/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
