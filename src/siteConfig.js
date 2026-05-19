@@ -336,18 +336,38 @@ function setSectionHead(sectionEl, cfg, fallbackTitle) {
   }
 }
 
+/** Profile bio first; then hero description; then legacy siteConfig about text. */
+function resolveAboutBio(business, map) {
+  const profileBio = String(business?.aboutBio || '').trim();
+  if (profileBio) return profileBio;
+  const tagline = String(business?.description || '').trim();
+  if (tagline) return tagline;
+  return String(map.get('about')?.description || '').trim();
+}
+
 function applyAboutContent(business, map) {
+  const aboutSection = document.getElementById('about');
   const aboutText = document.getElementById('about-text');
   if (!aboutText) return;
   const dup = document.getElementById('about')?.querySelector('#about-desc');
   dup?.remove();
-  const bio = String(business?.aboutBio || '').trim();
-  if (bio && isEnabled(map, 'about')) {
+  const bio = resolveAboutBio(business, map);
+  const showSection = isEnabled(map, 'about');
+  if (bio && showSection) {
     aboutText.textContent = bio;
     aboutText.classList.remove('hidden');
+    aboutSection?.classList.remove('view-hidden', 'about-section--empty');
   } else {
     aboutText.textContent = '';
     aboutText.classList.add('hidden');
+    if (aboutSection) {
+      if (!showSection) {
+        aboutSection.classList.add('view-hidden');
+      } else {
+        aboutSection.classList.remove('view-hidden');
+        aboutSection.classList.toggle('about-section--empty', !bio);
+      }
+    }
   }
 }
 
@@ -557,7 +577,11 @@ export function applySiteConfig(business) {
     if (!el) continue;
     const enabled = isEnabled(map, id);
     el.classList.toggle('site-section-disabled', !enabled);
-    if (!enabled) el.classList.add('view-hidden');
+    if (!enabled) {
+      el.classList.add('view-hidden');
+    } else if (id !== 'about') {
+      el.classList.remove('view-hidden');
+    }
   }
 
   const heroCfg = map.get('hero');
