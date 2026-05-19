@@ -8,7 +8,7 @@ import config, {
   hasStoreSlug,
   orderUrl,
 } from './config.js';
-import { fetchBusinesses, fetchCatalog, fetchOffers } from './catalogApi.js';
+import { fetchBusinesses, fetchCatalog, fetchOffers, fetchServices } from './catalogApi.js';
 import {
   applyDocumentSeo,
   businessSeoFromProfile,
@@ -22,7 +22,13 @@ import {
   setCatalogMeta,
   setShopLocale,
 } from './locale.js';
-import { isStorePath, marketplaceHomePath, shopPathFor } from './slug.js';
+import {
+  getRawPathSegment,
+  isStorePath,
+  isValidSlug,
+  marketplaceHomePath,
+  shopPathFor,
+} from './slug.js';
 import {
   addToCart,
   cartBusinessSlugs,
@@ -43,13 +49,26 @@ import {
   savePendingOrder,
 } from './pendingOrder.js';
 import { loadMarketplace, isMarketplaceMode } from './marketplace.js';
-import { applySiteConfig } from './siteConfig.js';
+import { businessTypeLabel } from './businessTypeLabels.js';
+import { applySiteConfig, formatBusinessLocation } from './siteConfig.js';
+import { applyProStoreTheme, clearProStoreTheme } from './storeProTheme.js';
+import {
+  catalogSkeletonHtml,
+  emptyStateHtml,
+  initStoreScrollSpy,
+  isStoreMode,
+  scrollToStoreView,
+  STORE_VIEW_SECTIONS,
+} from './storeUx.js';
 
 const $ = (sel) => document.querySelector(sel);
 
 const offersSection = $('#offers');
 const offersListEl = $('#offers-list');
 const offersEmptyEl = $('#offers-empty');
+const servicesSection = $('#shop-services');
+const servicesListEl = $('#services-list');
+const servicesEmptyEl = $('#services-empty');
 const catalogEl = $('#catalog');
 const cartPanel = $('#cart-panel');
 const cartLines = $('#cart-lines');
@@ -69,7 +88,13 @@ const shopName = $('#shop-name');
 const shopSlug = $('#shop-slug');
 const heroTitle = $('#hero-title');
 const heroEyebrow = $('#hero-eyebrow');
+const heroTagline = $('#hero-tagline');
 const heroCta = $('#hero-cta');
+const heroCtaServices = $('#hero-cta-services');
+const heroTrust = $('#hero-trust');
+const heroStats = $('#hero-stats');
+const headerOrderCta = $('#header-order-cta');
+const contactCards = $('#contact-cards');
 const aboutText = $('#about-text');
 const contactText = $('#contact-text');
 const contactWa = $('#contact-wa');
@@ -79,12 +104,17 @@ const navToggle = $('#nav-toggle');
 const siteNav = $('#site-nav');
 const brandLink = $('#brand-link');
 const langSwitcherEl = $('#lang-switcher');
+const storeBottomNav = $('#store-bottom-nav');
+const bottomCartBtn = $('#bottom-cart');
+const bottomCartCount = $('#bottom-cart-count');
+const cartBackdrop = $('#cart-backdrop');
 
 let products = [];
 let categories = [];
 let selectedCategoryId = '';
 let shopLogoUrl = '';
 let offers = [];
+let services = [];
 let businessName = 'Biznesi';
 let businessProfile = {};
 let pollTimer = null;
@@ -108,8 +138,97 @@ function displayShopName(name) {
   if (brandLink) brandLink.setAttribute('aria-label', `${text} — Kreu`);
 }
 
-function setHeroVisual(logoUrl) {
-  const card = document.querySelector('.hero-visual-card');
+function renderHeroStats(business) {
+  if (!heroStats) return;
+  const count = business?.productCount;
+  const loc = formatBusinessLocation(business);
+  const items = [];
+  if (count != null && count > 0) {
+    items.push({ value: String(count), label: count === 1 ? 'Produkt' : 'Produkte' });
+  }
+  if (loc) items.push({ value: '✓', label: loc.split(',')[0].trim() });
+  if (business?.orderPhone) items.push({ value: 'WA', label: 'Porosi WhatsApp' });
+
+  if (!items.length || !document.body.classList.contains('store-pro')) {
+    heroStats.classList.add('hidden');
+    heroStats.replaceChildren();
+    return;
+  }
+
+  heroStats.innerHTML = items
+    .map(
+      (s) =>
+        `<div class="hero-stat"><span class="hero-stat__value">${escapeHtml(s.value)}</span><span class="hero-stat__label">${escapeHtml(s.label)}</span></div>`,
+    )
+    .join('');
+  heroStats.classList.remove('hidden');
+}
+
+function renderContactCards(business) {
+  if (!contactCards) return;
+  contactCards.replaceChildren();
+  const loc = formatBusinessLocation(business);
+  const phone = (business?.orderPhone || '').trim();
+  const website = (business?.website || '').trim();
+  const items = [];
+  if (loc) items.push({ label: 'Vendndodhja', value: loc, href: null });
+  if (phone) {
+    const digits = phoneDigits(phone);
+    items.push({
+      label: 'Telefoni',
+      value: phone,
+      href: digits ? `tel:+${digits}` : null,
+    });
+  }
+  if (website) {
+    const href = website.startsWith('http') ? website : `https://${website}`;
+    items.push({
+      label: 'Faqja web',
+      value: website.replace(/^https?:\/\//, ''),
+      href,
+    });
+  }
+  if (!items.length) {
+    contactCards.classList.add('hidden');
+    return;
+  }
+  for (const item of items) {
+    const card = document.createElement(item.href ? 'a' : 'div');
+    card.className = 'contact-card';
+    if (item.href) {
+      card.href = item.href;
+      if (item.href.startsWith('http')) {
+        card.target = '_blank';
+        card.rel = 'noopener noreferrer';
+      }
+    }
+    card.innerHTML = `<span class="contact-card__label">${escapeHtml(item.label)}</span><span class="contact-card__value">${escapeHtml(item.value)}</span>`;
+    contactCards.appendChild(card);
+  }
+  contactCards.classList.remove('hidden');
+}
+
+function updateHeroSecondaryCta() {
+  if (!heroCtaServices) return;
+  const hasServices = services.length > 0;
+  heroCtaServices.classList.toggle('hidden', !hasServices);
+}
+
+function businessMonogram(name) {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+  }
+  const word = parts[0] || 'B';
+  return word.slice(0, 2).toUpperCase();
+}
+
+function setHeroVisual(logoUrl, name) {
+  const card =
+    document.getElementById('hero-visual-card') || document.querySelector('.hero-visual-card');
   if (!card) return;
   card.replaceChildren();
   if (logoUrl) {
@@ -119,10 +238,11 @@ function setHeroVisual(logoUrl) {
     img.alt = '';
     card.appendChild(img);
   } else {
-    const icon = document.createElement('div');
-    icon.className = 'hero-visual-icon';
-    icon.textContent = '🛒';
-    card.appendChild(icon);
+    const monogram = document.createElement('div');
+    monogram.className = 'hero-visual-monogram';
+    monogram.textContent = businessMonogram(name);
+    monogram.setAttribute('aria-hidden', 'true');
+    card.appendChild(monogram);
   }
 }
 
@@ -133,18 +253,22 @@ function updateShopPresentation(business) {
     business?.description ||
     'Produkte të zgjedhura me kujdes, çmime konkurruese dhe porosi të shpejta përmes WhatsApp.';
   displayShopName(name);
-  if (heroTitle) {
-    heroTitle.textContent = `Mirësevini në ${name}`;
+  if (brandLink) brandLink.setAttribute('aria-label', `${name} — Kreu`);
+  if (heroTitle) heroTitle.textContent = name;
+  const typeLabel = businessTypeLabel(business?.businessType);
+  if (heroEyebrow) heroEyebrow.textContent = typeLabel || 'Dyqan online';
+  if (heroTagline) {
+    heroTagline.textContent = desc.split('\n')[0].slice(0, 160);
   }
-  if (heroEyebrow) heroEyebrow.textContent = name;
   if (aboutText) {
-    const loc = business?.location ? `\n\n📍 ${business.location}` : '';
+    const locLine = formatBusinessLocation(business);
+    const loc = locLine ? `\n\n${locLine}` : '';
     aboutText.textContent = `${desc}${loc}`.trim();
   }
   if (shopSlug) {
+    shopSlug.classList.add('hidden');
     const pathSlug = itemUrlSlug(business) || business?.slug || '';
     shopSlug.textContent = pathSlug ? `/${pathSlug}` : '';
-    shopSlug.classList.toggle('hidden', !pathSlug);
     if (hasLocalizedUrlSlug(business)) {
       shopSlug.title = `/${business.slug}`;
     } else {
@@ -172,11 +296,12 @@ function updateShopPresentation(business) {
   const locationEl = document.getElementById('hero-location');
   const websiteEl = document.getElementById('hero-website');
   shopLogoUrl = business?.logoUrl || '';
-  setHeroVisual(shopLogoUrl);
+  setHeroVisual(shopLogoUrl, name);
 
   if (profileBar) {
+    const locLine = formatBusinessLocation(business);
     const hasMeta =
-      shopLogoUrl || business?.location || business?.website || business?.orderPhone;
+      shopLogoUrl || locLine || business?.website || business?.orderPhone;
     profileBar.classList.toggle('hidden', !hasMeta);
   }
   if (profileLogo) {
@@ -188,8 +313,8 @@ function updateShopPresentation(business) {
     }
   }
   if (locationEl) {
-    const loc = business?.location || '';
-    locationEl.textContent = loc ? `📍 ${loc}` : '';
+    const loc = formatBusinessLocation(business);
+    locationEl.textContent = loc;
     locationEl.classList.toggle('hidden', !loc);
   }
   if (websiteEl) {
@@ -203,6 +328,9 @@ function updateShopPresentation(business) {
       websiteEl.classList.add('hidden');
     }
   }
+
+  renderContactCards(business);
+  renderHeroStats(business);
 
   const orderPhone = business?.orderPhone || config.orderPhone || '';
   const digits = phoneDigits(orderPhone);
@@ -222,15 +350,24 @@ function updateShopPresentation(business) {
 }
 
 let SHOP_VIEWS = {
-  home: ['hero', 'offers', 'shop-products', 'about', 'contact'],
+  home: ['hero', 'offers', 'shop-services', 'shop-products', 'about', 'contact'],
   offers: ['offers'],
   products: ['shop-products'],
+  services: ['shop-services'],
   about: ['about'],
   gallery: ['gallery'],
   contact: ['contact'],
 };
 
-let SHOP_SECTION_IDS = ['hero', 'offers', 'shop-products', 'about', 'gallery', 'contact'];
+let SHOP_SECTION_IDS = [
+  'hero',
+  'offers',
+  'shop-services',
+  'shop-products',
+  'about',
+  'gallery',
+  'contact',
+];
 
 function parseShopViewFromHash() {
   const hash = window.location.hash.replace(/^#/, '').toLowerCase();
@@ -238,30 +375,48 @@ function parseShopViewFromHash() {
   return 'home';
 }
 
-function setShopView(view) {
+function highlightShopNav(view, { updateHash = true } = {}) {
   const key = SHOP_VIEWS[view] ? view : 'home';
-  const visible = SHOP_VIEWS[key];
-
   document.body.dataset.shopView = key;
+  siteNav?.querySelectorAll('[data-nav]').forEach((link) => {
+    link.classList.toggle('is-active', link.getAttribute('data-view') === key);
+  });
+  storeBottomNav?.querySelectorAll('[data-bottom-nav]').forEach((btn) => {
+    btn.classList.toggle('is-active', btn.getAttribute('data-bottom-nav') === key);
+  });
+  if (updateHash) {
+    const hash = key === 'home' ? '' : `#${key}`;
+    if (window.location.hash !== hash) {
+      history.replaceState(null, '', `${window.location.pathname}${window.location.search}${hash}`);
+    }
+  }
+  return key;
+}
 
+function setShopView(view, options = {}) {
+  const key = highlightShopNav(view, { updateHash: options.updateHash !== false });
+  closeMobileNav();
+
+  if (isStoreMode()) {
+    SHOP_SECTION_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('view-hidden');
+    });
+    if (!options.fromScroll) scrollToStoreView(key);
+    return;
+  }
+
+  const visible = SHOP_VIEWS[key];
   SHOP_SECTION_IDS.forEach((id) => {
     const el = document.getElementById(id);
     if (!el || el.classList.contains('site-section-disabled')) return;
     el.classList.toggle('view-hidden', !visible.includes(id));
   });
 
-  siteNav?.querySelectorAll('[data-nav]').forEach((link) => {
-    link.classList.toggle('is-active', link.getAttribute('data-view') === key);
-  });
-
-  const hash = key === 'home' ? '' : `#${key}`;
-  if (window.location.hash !== hash) {
-    history.replaceState(null, '', `${window.location.pathname}${window.location.search}${hash}`);
-  }
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   if (key === 'products' && products.length) renderCatalog();
+  if (key === 'services' && services.length) renderServices();
 }
 
 function closeMobileNav() {
@@ -302,8 +457,26 @@ function initSiteNav() {
   });
 
   heroCta?.addEventListener('click', () => setShopView('products'));
+  heroCtaServices?.addEventListener('click', () => setShopView('services'));
+  headerOrderCta?.addEventListener('click', () => {
+    setShopView('products');
+    openCart();
+  });
 
   window.addEventListener('hashchange', () => setShopView(parseShopViewFromHash()));
+
+  storeBottomNav?.querySelectorAll('[data-bottom-nav]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const view = btn.getAttribute('data-bottom-nav') || 'home';
+      setShopView(view);
+    });
+  });
+  bottomCartBtn?.addEventListener('click', openCart);
+
+  initStoreScrollSpy((view, meta) => {
+    if (!isStoreMode()) return;
+    highlightShopNav(view, { updateHash: !meta?.fromScroll });
+  });
 
   setShopView(parseShopViewFromHash());
 
@@ -315,6 +488,10 @@ function initSiteNav() {
 function updateCartBadge(count) {
   cartCountEl.textContent = String(count);
   cartCountEl.dataset.zero = count === 0 ? 'true' : 'false';
+  if (bottomCartCount) {
+    bottomCartCount.textContent = String(count);
+    bottomCartCount.classList.toggle('hidden', count === 0);
+  }
 }
 
 function formatOfferPeriod(startsAt, endsAt) {
@@ -386,9 +563,40 @@ function buildOrderMessage(cart, notes, customer) {
 }
 
 function whatsAppUrl(text) {
-  const digits = phoneDigits(config.orderPhone);
+  const digits = phoneDigits(businessProfile?.orderPhone || config.orderPhone);
   if (!digits) return null;
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+}
+
+function buildServiceReserveMessage(service) {
+  const parts = [
+    `Rezervim — ${businessName}`,
+    `Shërbimi: ${service.name}`,
+  ];
+  const mins = service.durationMinutes;
+  if (mins != null && mins > 0) {
+    parts.push(`Kohëzgjatja: ~${mins} min`);
+  }
+  const price = service.priceEur;
+  if (price != null && price > 0) {
+    parts.push(`Çmimi: €${Number(price).toFixed(2)}`);
+  }
+  if (service.description) {
+    parts.push(`Përshkrimi: ${service.description}`);
+  }
+  parts.push(
+    '',
+    'Emri:',
+    'Mbiemri:',
+    'Data/ora e preferuar:',
+    'Telefoni:',
+  );
+  return parts.join('\n');
+}
+
+function reserveWhatsAppUrl(service) {
+  const text = buildServiceReserveMessage(service);
+  return whatsAppUrl(text);
 }
 
 function smsUrl(text) {
@@ -414,13 +622,16 @@ function setSendButtonsLoading(loading) {
 function openCart() {
   cartPanel.classList.remove('hidden');
   cartPanel.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('cart-open');
   updateOrderPreview();
   renderPendingBanner();
+  $('#cart-close')?.focus();
 }
 
 function closeCart() {
   cartPanel.classList.add('hidden');
   cartPanel.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('cart-open');
 }
 
 function statusLabelSq(status) {
@@ -610,14 +821,40 @@ function offerItemPriceHtml(item) {
   return `<span class="offer-item__price"><span class="price-was">${formatEuro(orig)}</span> <span class="price-now">${formatEuro(sale)}</span> <span class="offer-pct">−${pct}%</span></span>`;
 }
 
+function syncStoreBottomNav() {
+  if (!storeBottomNav) return;
+  storeBottomNav.querySelectorAll('[data-bottom-nav]').forEach((btn) => {
+    const view = btn.getAttribute('data-bottom-nav');
+    const cfg = STORE_VIEW_SECTIONS[view];
+    if (!cfg || cfg.scrollTop) return;
+    const el = document.getElementById(cfg.sectionId);
+    const off = el?.classList.contains('site-section-disabled');
+    btn.classList.toggle('hidden', off);
+    btn.disabled = off;
+  });
+}
+
+function bindEmptyStateActions(container) {
+  container?.querySelectorAll('[data-empty-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const view = btn.getAttribute('data-empty-action');
+      if (view) setShopView(view);
+    });
+  });
+}
+
 function renderOffers() {
   if (!offers.length) {
-    offersListEl.innerHTML = '';
-    offersEmptyEl.classList.remove('hidden');
+    offersListEl.innerHTML = emptyStateHtml({
+      title: 'Nuk ka oferta aktive',
+      text: 'Kthehuni më vonë për zbritje dhe paketa speciale.',
+    });
+    offersEmptyEl?.classList.add('hidden');
+    bindEmptyStateActions(offersListEl);
     return;
   }
 
-  offersEmptyEl.classList.add('hidden');
+  offersEmptyEl?.classList.add('hidden');
   offersListEl.innerHTML = offers
     .map((offer) => {
       const period = formatOfferPeriod(offer.startsAt, offer.endsAt);
@@ -643,7 +880,7 @@ function renderOffers() {
               <strong>${escapeHtml(item.productName)}</strong>
               ${offerItemPriceHtml(item)}
             </div>
-            <button type="button" class="add-btn add-btn--sm" data-offer-add="${item.productId}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>+ Shto</button>
+            <button type="button" class="add-btn add-btn--sm" data-offer-add="${item.productId}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>Shto</button>
           </div>`;
                 })
                 .join('')
@@ -688,8 +925,10 @@ function selectedVariant(product) {
 
 function productThumbHtml(p) {
   const urls = p.imageUrls || [];
-  if (!urls.length) return '';
   const count = urls.length;
+  if (!count) {
+    return `<div class="product-thumb-btn product-thumb-btn--placeholder" aria-hidden="true"><span>${escapeHtml((p.name || '?').slice(0, 1).toUpperCase())}</span></div>`;
+  }
   return `
     <button type="button" class="product-thumb-btn" data-gallery="${p.id}" aria-label="Shiko fotot (${count})">
       <img src="${escapeHtml(urls[0])}" alt="" loading="lazy" />
@@ -735,7 +974,12 @@ function renderCatalog() {
   renderCategoryFilters();
   const list = filteredProducts();
   if (!list.length) {
-    catalogEl.innerHTML = '<p class="muted">Nuk ka produkte aktive.</p>';
+    catalogEl.innerHTML = emptyStateHtml({
+      title: products.length ? 'Nuk ka produkte në këtë kategori' : 'Nuk ka produkte aktive',
+      text: products.length
+        ? 'Zgjidhni një kategori tjetër.'
+        : 'Biznesi nuk ka publikuar produkte ende.',
+    });
     return;
   }
 
@@ -750,7 +994,7 @@ function renderCatalog() {
         ${variantSelectHtml(p)}
         ${priceHtml(p.price, p.originalPrice, p.onOffer)}
       </div>
-      <button type="button" class="add-btn" data-add="${p.id}" ${hasActivePending() ? 'disabled' : ''}>+ Shto</button>
+      <button type="button" class="add-btn" data-add="${p.id}" ${hasActivePending() ? 'disabled' : ''}>Shto në shportë</button>
     </article>
   `,
     )
@@ -885,9 +1129,87 @@ async function loadOffers() {
   }
 }
 
+const SOCIAL_SVG_WHATSAPP =
+  '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.435 9.884-9.881 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>';
+
+function formatServiceDuration(minutes) {
+  if (minutes == null || minutes <= 0) return '';
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (rest === 0) return `${h} orë`;
+  return `${h} orë ${rest} min`;
+}
+
+function renderServices() {
+  if (!servicesListEl) return;
+  if (!services.length) {
+    servicesListEl.innerHTML = emptyStateHtml({
+      title: 'Nuk ka shërbime aktive',
+      text: 'Kontaktoni biznesin direkt për informacion.',
+      actionLabel: 'Kontakt',
+      actionView: 'contact',
+    });
+    servicesEmptyEl?.classList.add('hidden');
+    bindEmptyStateActions(servicesListEl);
+    return;
+  }
+
+  servicesEmptyEl?.classList.add('hidden');
+  const waAvailable = Boolean(reserveWhatsAppUrl(services[0]));
+
+  servicesListEl.innerHTML = services
+    .map((service) => {
+      const duration = formatServiceDuration(service.durationMinutes);
+      const price =
+        service.priceEur != null && service.priceEur > 0
+          ? formatEuro(service.priceEur)
+          : '';
+      const meta = [duration, price].filter(Boolean).join(' · ');
+      const waUrl = reserveWhatsAppUrl(service);
+      const reserveBtn = waAvailable && waUrl
+        ? `<a class="rezervo-btn" href="${waUrl}" target="_blank" rel="noopener noreferrer" aria-label="Rezervo ${escapeHtml(service.name)} përmes WhatsApp">
+            <span class="rezervo-btn__icon" aria-hidden="true">${SOCIAL_SVG_WHATSAPP}</span>
+            Rezervo
+          </a>`
+        : `<p class="muted rezervo-unavailable">Vendosni numrin e porosive në admin.</p>`;
+
+      return `
+    <article class="service-card">
+      <div class="service-card__body">
+        <h3 class="service-card__title">${escapeHtml(service.name)}</h3>
+        ${meta ? `<p class="service-card__meta">${escapeHtml(meta)}</p>` : ''}
+        ${service.description ? `<p class="service-card__desc">${escapeHtml(service.description)}</p>` : ''}
+      </div>
+      ${reserveBtn}
+    </article>`;
+    })
+    .join('');
+}
+
+async function loadServices() {
+  if (!hasStoreSlug()) return;
+
+  try {
+    const data = await fetchServices(getSlug());
+    services = data.services || [];
+    renderServices();
+    updateHeroSecondaryCta();
+  } catch {
+    services = [];
+    renderServices();
+    updateHeroSecondaryCta();
+  }
+}
+
 async function renderMarketplaceHome() {
   document.body.dataset.mode = 'marketplace';
+  clearProStoreTheme();
+  headerOrderCta?.classList.add('hidden');
+  heroTrust?.classList.add('hidden');
+  storeBottomNav?.classList.add('hidden');
   offersSection.classList.add('hidden');
+  servicesSection?.classList.add('hidden');
   document.querySelector('.catalog-head')?.classList.add('hidden');
   document.getElementById('hero')?.classList.add('hidden');
   document.querySelector('.site-nav')?.classList.add('hidden');
@@ -938,31 +1260,95 @@ function applyShopSeo(business) {
   applyDocumentSeo({ title, description, locale: getShopLocale() });
 }
 
+function showStoreLoadError(err, slug) {
+  document.body.dataset.mode = 'store';
+  heroTrust?.classList.add('hidden');
+  storeBottomNav?.classList.add('hidden');
+  offersSection?.classList.add('hidden');
+  servicesSection?.classList.add('hidden');
+  document.getElementById('hero')?.classList.add('hidden');
+  document.querySelector('.site-nav')?.classList.add('hidden');
+
+  const notFound = /not found/i.test(String(err?.message || err));
+  const title = notFound ? 'Dyqani nuk u gjet' : 'Gabim gjatë ngarkimit';
+  const text = notFound
+    ? `Nuk ekziston dyqan me slug «${escapeHtml(slug)}». Kontrolloni linkun ose krijoni slug-in te Settings → Website.`
+    : escapeHtml(String(err?.message || err));
+
+  catalogEl.innerHTML = `${emptyStateHtml({
+    title,
+    text,
+    actionLabel: 'Shiko të gjitha dyqanet',
+    actionView: 'home',
+  })}<p class="store-error-hint muted">Shembull linku: <code>${escapeHtml(
+    shopPathFor('emri-i-biznesit'),
+  )}</code></p>`;
+
+  bindEmptyStateActions(catalogEl);
+  catalogEl.querySelector('[data-empty-action]')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = marketplaceHomePath();
+  });
+}
+
 async function loadShop() {
+  const rawSegment = getRawPathSegment();
+  if (rawSegment && !isValidSlug(rawSegment)) {
+    await renderMarketplaceHome();
+    const banner = document.createElement('p');
+    banner.className = 'market-invalid-slug-banner';
+    banner.setAttribute('role', 'alert');
+    banner.textContent = `Adresa «/${rawSegment}» nuk është slug i vlefshëm. Zgjidhni një dyqan më poshtë.`;
+    catalogEl.prepend(banner);
+    return;
+  }
+
   if (!hasStoreSlug()) {
     await renderMarketplaceHome();
     return;
   }
 
+  const slug = getSlug();
+
   document.body.dataset.mode = 'store';
+  heroTrust?.classList.remove('hidden');
+  storeBottomNav?.classList.remove('hidden');
   if (brandLink) brandLink.href = shopPathFor(getSlug());
   offersSection.classList.remove('hidden');
+  servicesSection?.classList.remove('hidden');
   document.querySelector('.catalog-head')?.classList.remove('hidden');
   document.getElementById('hero')?.classList.remove('hidden');
   document.querySelector('.site-nav')?.classList.remove('hidden');
   closeMobileNav();
-  catalogEl.innerHTML = '<p class="loading muted">Duke ngarkuar produktet…</p>';
+  catalogEl.innerHTML = catalogSkeletonHtml(6);
 
-  const data = await fetchCatalog(getSlug());
+  let data;
+  try {
+    data = await fetchCatalog(slug);
+  } catch (err) {
+    showStoreLoadError(err, slug);
+    return;
+  }
   if (data.meta) setCatalogMeta(data.meta);
   businessName = data.business?.name || 'Biznesi';
-  updateShopPresentation(data.business);
+  const business = { ...data.business, productCount: data.productCount };
+  updateShopPresentation(business);
   renderLangSwitcher();
-  applyShopSeo(data.business);
-  const routing = applySiteConfig(data.business);
+  applyShopSeo(business);
+  const routing = applySiteConfig(business);
+  applyProStoreTheme(business);
+  if (heroCta) heroCta.textContent = 'Porosit tani';
+  headerOrderCta?.classList.remove('hidden');
+  renderHeroStats(business);
   if (routing?.shopViews) SHOP_VIEWS = routing.shopViews;
   if (routing?.sectionIds?.length) SHOP_SECTION_IDS = routing.sectionIds;
-  setShopView(parseShopViewFromHash());
+  if (isStoreMode()) {
+    SHOP_SECTION_IDS.forEach((id) => {
+      document.getElementById(id)?.classList.remove('view-hidden');
+    });
+    syncStoreBottomNav();
+  }
+  requestAnimationFrame(() => setShopView(parseShopViewFromHash()));
   categories = data.categories || [];
   selectedCategoryId = '';
   products = data.products || [];
@@ -972,6 +1358,7 @@ async function loadShop() {
     countEl.classList.remove('hidden');
   }
   await loadOffers();
+  await loadServices();
   renderCatalog();
   showOrderKeyHint();
 }
@@ -1142,6 +1529,10 @@ initSiteNav();
 
 $('#cart-toggle').addEventListener('click', openCart);
 $('#cart-close').addEventListener('click', closeCart);
+cartBackdrop?.addEventListener('click', closeCart);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !cartPanel.classList.contains('hidden')) closeCart();
+});
 orderNotes.addEventListener('input', updateOrderPreview);
 customerNameInput?.addEventListener('input', updateOrderPreview);
 customerPhoneInput?.addEventListener('input', updateOrderPreview);
@@ -1150,5 +1541,7 @@ btnSms.addEventListener('click', () => sendOrder('sms'));
 
 restorePendingOnLoad();
 loadShop().catch((err) => {
-  catalogEl.innerHTML = `<p class="error">${escapeHtml(err.message)}</p>`;
+  const slug = getSlug() || getRawPathSegment() || '';
+  if (slug && isValidSlug(slug)) showStoreLoadError(err, slug);
+  else catalogEl.innerHTML = `<p class="error">${escapeHtml(err.message)}</p>`;
 });

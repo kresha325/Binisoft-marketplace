@@ -18,6 +18,10 @@ function resolveApiBaseUrl() {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
   }
   if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'kresha325.github.io' || host.endsWith('.github.io')) {
+      return CLOUD_PUBLIC_API;
+    }
     return window.location.origin;
   }
   return CLOUD_PUBLIC_API;
@@ -71,6 +75,10 @@ export function categoriesUrl(slug = getSlug()) {
 
 export function offersUrl(slug = getSlug()) {
   return shopPath(slug, 'offers');
+}
+
+export function servicesUrl(slug = getSlug()) {
+  return shopPath(slug, 'services');
 }
 
 export function ordersUrl(slug = getSlug()) {

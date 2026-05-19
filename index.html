@@ -6,7 +6,9 @@
   <title>Shop</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles.css" />
 </head>
 <body>
@@ -36,6 +38,7 @@
           <button type="button" id="nav-toggle" class="nav-toggle" aria-label="Hap menunë" aria-expanded="false" aria-controls="site-nav">
             <span></span><span></span><span></span>
           </button>
+          <button type="button" id="header-order-cta" class="header-order-cta hidden">Porosit tani</button>
           <button type="button" id="cart-toggle" class="cart-icon-btn" aria-label="Shporta">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="2"/>
@@ -61,13 +64,20 @@
         <div class="hero-copy">
           <p class="hero-eyebrow" id="hero-eyebrow">Mirësevini</p>
           <h1 class="hero-title" id="hero-title">Mirësevini në dyqanin tonë</h1>
-          <p class="hero-tagline" id="hero-tagline">Cilësi · Çmime të mira · Shërbim i shpejtë</p>
-          <button type="button" id="hero-cta" class="hero-cta">Blej tani</button>
+          <p class="hero-tagline" id="hero-tagline">Produkte dhe shërbime të zgjedhura — porosi të shpejta online.</p>
+          <div class="hero-actions">
+            <button type="button" id="hero-cta" class="hero-cta">Shiko produktet</button>
+            <button type="button" id="hero-cta-services" class="hero-cta hero-cta--secondary hidden">Shërbimet</button>
+          </div>
+          <ul class="hero-trust hidden" id="hero-trust" aria-label="Përfitimet">
+            <li>Porosi online</li>
+            <li>Kontakt WhatsApp</li>
+            <li>Çmime transparente</li>
+          </ul>
+          <div id="hero-stats" class="hero-stats hidden" aria-label="Statistika"></div>
         </div>
         <div class="hero-visual" aria-hidden="true">
-          <div class="hero-visual-card">
-            <div class="hero-visual-icon">🛒</div>
-          </div>
+          <div class="hero-visual-card" id="hero-visual-card"></div>
         </div>
       </div>
     </section>
@@ -79,6 +89,14 @@
           <p id="offers-empty" class="muted hidden">Nuk ka oferta aktive tani.</p>
         </div>
         <div id="offers-list" class="offers-list"></div>
+      </section>
+
+      <section id="shop-services" class="services-section" aria-label="Shërbimet">
+        <div class="section-head">
+          <h2>Shërbimet</h2>
+          <p id="services-empty" class="muted hidden">Nuk ka shërbime aktive tani.</p>
+        </div>
+        <div id="services-list" class="services-list"></div>
       </section>
 
       <section id="shop-products" class="products-section">
@@ -109,7 +127,11 @@
           <h2>Kontakt</h2>
         </div>
         <p id="contact-text" class="info-body muted">Porosit përmes WhatsApp ose SMS nga shporta.</p>
-        <a id="contact-wa" class="contact-wa hidden" href="#" target="_blank" rel="noopener noreferrer">Na shkruani në WhatsApp</a>
+        <div id="contact-cards" class="contact-cards hidden"></div>
+        <a id="contact-wa" class="contact-wa hidden" href="#" target="_blank" rel="noopener noreferrer">
+          <span class="contact-wa__icon" aria-hidden="true"></span>
+          Na shkruani në WhatsApp
+        </a>
       </section>
     </main>
 
@@ -118,26 +140,53 @@
       <div id="footer-extras" class="footer-extras"></div>
     </footer>
 
-    <aside id="cart-panel" class="cart-panel hidden" aria-hidden="true">
+    <nav id="store-bottom-nav" class="store-bottom-nav hidden" aria-label="Navigim i shpejtë">
+      <button type="button" class="store-bottom-nav__btn" data-bottom-nav="home" aria-label="Kreu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>Kreu</span>
+      </button>
+      <button type="button" class="store-bottom-nav__btn" data-bottom-nav="products" aria-label="Produkte">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span>Produkte</span>
+      </button>
+      <button type="button" class="store-bottom-nav__btn" data-bottom-nav="offers" aria-label="Oferta">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7h10l-1 5H8L7 7zM9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>Oferta</span>
+      </button>
+      <button type="button" class="store-bottom-nav__btn" data-bottom-nav="contact" aria-label="Kontakt">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span>Kontakt</span>
+      </button>
+      <button type="button" class="store-bottom-nav__btn store-bottom-nav__btn--cart" id="bottom-cart" aria-label="Shporta">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg>
+        <span>Shporta</span>
+        <span id="bottom-cart-count" class="store-bottom-nav__badge hidden">0</span>
+      </button>
+    </nav>
+
+    <aside id="cart-panel" class="cart-panel hidden" aria-hidden="true" role="dialog" aria-labelledby="cart-title">
+      <button type="button" class="cart-backdrop" id="cart-backdrop" aria-label="Mbyll shportën" tabindex="-1"></button>
       <div class="cart-inner">
-        <div class="cart-head"><h2>Shporta</h2><button type="button" id="cart-close" aria-label="Mbyll">×</button></div>
+        <div class="cart-head"><h2 id="cart-title">Shporta</h2><button type="button" id="cart-close" class="cart-close-btn" aria-label="Mbyll">×</button></div>
         <div id="pending-order" class="pending-order hidden" aria-live="polite"></div>
-        <ul id="cart-lines"></ul>
-        <p id="cart-empty" class="muted">Shporta është bosh.</p>
-        <p id="cart-total"></p>
-        <pre id="order-preview" class="order-preview hidden" aria-label="Përmbledhje porosie"></pre>
-        <div class="checkout-form">
-          <label for="customer-name">Emri</label>
-          <input id="customer-name" type="text" autocomplete="name" placeholder="Emri juaj" required />
-          <label for="customer-phone">Telefoni</label>
-          <input id="customer-phone" type="tel" autocomplete="tel" placeholder="+383 44 123 456" required />
-          <label for="order-notes">Shënime <span class="muted">(opsionale)</span></label>
-          <textarea id="order-notes" rows="2" placeholder="Adresa, koha e dorëzimit…"></textarea>
-          <div class="send-actions">
-            <button type="button" id="btn-whatsapp" class="send-btn send-btn--wa" disabled>WhatsApp</button>
-            <button type="button" id="btn-sms" class="send-btn send-btn--sms" disabled>SMS</button>
+        <ul id="cart-lines" class="cart-lines"></ul>
+        <p id="cart-empty" class="cart-empty-msg muted">Shporta është bosh.</p>
+        <div class="cart-footer">
+          <p id="cart-total" class="cart-total-line"></p>
+          <pre id="order-preview" class="order-preview hidden" aria-label="Përmbledhje porosie"></pre>
+          <div class="checkout-form">
+            <label for="customer-name">Emri</label>
+            <input id="customer-name" type="text" autocomplete="name" placeholder="Emri juaj" required />
+            <label for="customer-phone">Telefoni</label>
+            <input id="customer-phone" type="tel" autocomplete="tel" placeholder="+383 44 123 456" required />
+            <label for="order-notes">Shënime <span class="muted">(opsionale)</span></label>
+            <textarea id="order-notes" rows="2" placeholder="Adresa, koha e dorëzimit…"></textarea>
+            <div class="send-actions">
+              <button type="button" id="btn-whatsapp" class="send-btn send-btn--wa" disabled>WhatsApp</button>
+              <button type="button" id="btn-sms" class="send-btn send-btn--sms" disabled>SMS</button>
+            </div>
+            <p id="checkout-error" class="error hidden"></p>
           </div>
-          <p id="checkout-error" class="error hidden"></p>
         </div>
       </div>
     </aside>

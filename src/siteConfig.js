@@ -1,7 +1,61 @@
+function parseHex(hex) {
+  const h = String(hex || '').replace('#', '').trim();
+  if (h.length === 3) {
+    return [
+      parseInt(h[0] + h[0], 16),
+      parseInt(h[1] + h[1], 16),
+      parseInt(h[2] + h[2], 16),
+    ];
+  }
+  if (h.length >= 6) {
+    return [
+      parseInt(h.slice(0, 2), 16),
+      parseInt(h.slice(2, 4), 16),
+      parseInt(h.slice(4, 6), 16),
+    ];
+  }
+  return [10, 22, 40];
+}
+
+function toHex([r, g, b]) {
+  const c = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+  return `#${c(r)}${c(g)}${c(b)}`;
+}
+
+function mixHex(a, b, t) {
+  const ar = parseHex(a);
+  const br = parseHex(b);
+  return toHex([
+    ar[0] + (br[0] - ar[0]) * t,
+    ar[1] + (br[1] - ar[1]) * t,
+    ar[2] + (br[2] - ar[2]) * t,
+  ]);
+}
+
+function luminance(hex) {
+  const [r, g, b] = parseHex(hex).map((v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** Display line for city / state / legacy location. */
+export function formatBusinessLocation(business) {
+  if (!business) return '';
+  const city = String(business.city || '').trim();
+  const state = String(business.state || '').trim();
+  if (city && state) return `${city}, ${state}`;
+  if (city) return city;
+  if (state) return state;
+  return String(business.location || '').trim();
+}
+
 const SECTION_DOM = {
   hero: 'hero',
   offers: 'offers',
   products: 'shop-products',
+  services: 'shop-services',
   about: 'about',
   gallery: 'gallery',
   contact: 'contact',
@@ -11,6 +65,7 @@ const NAV_VIEW = {
   hero: 'home',
   offers: 'offers',
   products: 'products',
+  services: 'services',
   about: 'about',
   gallery: 'gallery',
   contact: 'contact',
@@ -20,6 +75,7 @@ const DEFAULT_NAV_LABELS = {
   home: 'Kreu',
   offers: 'Oferta',
   products: 'Produkte',
+  services: 'Shërbimet',
   about: 'Rreth nesh',
   gallery: 'Galeria',
   contact: 'Kontakt',
@@ -75,11 +131,11 @@ function youtubeEmbedUrl(url) {
 export function buildShopViews(siteConfig) {
   const map = sectionMap(siteConfig);
   const home = [];
-  for (const id of ['hero', 'offers', 'products', 'about', 'gallery', 'contact']) {
+  for (const id of ['hero', 'offers', 'products', 'services', 'about', 'gallery', 'contact']) {
     if (isEnabled(map, id)) home.push(SECTION_DOM[id]);
   }
   const views = { home: home.length ? home : ['hero', 'shop-products', 'contact'] };
-  for (const id of ['offers', 'products', 'about', 'gallery', 'contact']) {
+  for (const id of ['offers', 'products', 'services', 'about', 'gallery', 'contact']) {
     if (isEnabled(map, id)) views[NAV_VIEW[id]] = [SECTION_DOM[id]];
   }
   return views;
@@ -95,21 +151,45 @@ export function buildSectionIds(siteConfig) {
 export function applySiteTheme(siteConfig) {
   const theme = siteConfig?.theme || {};
   const root = document.documentElement;
-  const primary = theme.primary || '#0a1628';
-  const accent = theme.accent || '#f5c518';
+  const primary = theme.primary || '#1c1917';
+  const accent = theme.accent || '#ff6b35';
+  const surface = theme.background || mixHex(primary, '#ffffff', 0.08);
+  const text = theme.text || (luminance(primary) > 0.4 ? '#0f172a' : '#f8fafc');
+
   root.style.setProperty('--navy', primary);
-  root.style.setProperty('--navy-mid', primary);
-  root.style.setProperty('--navy-light', primary);
+  root.style.setProperty('--navy-mid', mixHex(primary, '#000000', 0.12));
+  root.style.setProperty('--navy-light', mixHex(primary, '#ffffff', 0.14));
   root.style.setProperty('--yellow', accent);
-  root.style.setProperty('--yellow-hover', accent);
-  root.style.setProperty('--surface', theme.background || '#ffffff');
-  root.style.setProperty('--text', theme.text || '#111827');
+  root.style.setProperty('--yellow-hover', mixHex(accent, '#000000', 0.08));
+  root.style.setProperty('--yellow-text', luminance(accent) > 0.55 ? '#0a1628' : '#ffffff');
+  root.style.setProperty('--surface', surface);
+  root.style.setProperty('--text', text);
+  root.style.setProperty('--muted', mixHex(text, primary, 0.45));
+  root.style.setProperty('--border', `color-mix(in srgb, ${text} 12%, transparent)`);
+  root.style.setProperty(
+    '--header-bg',
+    `color-mix(in srgb, ${primary} 88%, transparent)`,
+  );
+
   if (siteConfig?.layout === 'wide') {
     root.style.setProperty('--max', '1280px');
     document.body.classList.add('layout-wide');
   } else {
-    root.style.setProperty('--max', '1120px');
+    root.style.setProperty('--max', '1200px');
     document.body.classList.remove('layout-wide');
+  }
+}
+
+export function applyStoreBranding(business) {
+  const brandLogo = document.querySelector('.brand-logo');
+  const logoUrl = (business?.logoUrl || '').trim();
+  if (!brandLogo) return;
+  if (logoUrl) {
+    brandLogo.src = logoUrl;
+    brandLogo.alt = business?.name ? `${business.name} logo` : '';
+    brandLogo.classList.add('brand-logo--store');
+  } else {
+    brandLogo.classList.remove('brand-logo--store');
   }
 }
 
@@ -181,11 +261,12 @@ function rebuildNav(siteConfig, siteNav) {
   if (
     isEnabled(map, 'hero') ||
     isEnabled(map, 'offers') ||
-    isEnabled(map, 'products')
+    isEnabled(map, 'products') ||
+    isEnabled(map, 'services')
   ) {
     links.push({ view: 'home', label: DEFAULT_NAV_LABELS.home, href: '#' });
   }
-  for (const id of ['products', 'offers', 'about', 'gallery', 'contact']) {
+  for (const id of ['products', 'services', 'offers', 'about', 'gallery', 'contact']) {
     if (!isEnabled(map, id)) continue;
     const cfg = map.get(id);
     const view = NAV_VIEW[id];
@@ -214,11 +295,26 @@ function renderFooter(business, siteConfig) {
   const cfg = siteConfig || {};
   const map = sectionMap(cfg);
 
-  if (cfg.footerShowLocation !== false && business?.location) {
+  const locationLine = formatBusinessLocation(business);
+  if (cfg.footerShowLocation !== false && locationLine) {
     const p = document.createElement('p');
-    p.className = 'footer-line';
-    p.textContent = `📍 ${business.location}`;
+    p.className = 'footer-line footer-line--location';
+    p.textContent = locationLine;
     extras.appendChild(p);
+  }
+
+  const embedSrc = business?.googleMapsEmbedUrl || '';
+  if (cfg.footerShowLocation !== false && embedSrc) {
+    const mapWrap = document.createElement('div');
+    mapWrap.className = 'footer-map';
+    const iframe = document.createElement('iframe');
+    iframe.src = embedSrc;
+    iframe.title = 'Google Maps';
+    iframe.loading = 'lazy';
+    iframe.referrerPolicy = 'no-referrer-when-downgrade';
+    iframe.allowFullscreen = true;
+    mapWrap.appendChild(iframe);
+    extras.appendChild(mapWrap);
   }
 
   const phone = business?.orderPhone || '';
@@ -227,7 +323,7 @@ function renderFooter(business, siteConfig) {
     const a = document.createElement('a');
     a.className = 'footer-line';
     a.href = `tel:+${digits}`;
-    a.textContent = `📞 ${phone}`;
+    a.textContent = phone;
     extras.appendChild(a);
   }
 
@@ -259,6 +355,12 @@ function renderFooter(business, siteConfig) {
     }
     extras.appendChild(row);
   }
+
+  const powered = document.createElement('p');
+  powered.className = 'footer-powered';
+  powered.innerHTML =
+    'Faqe e biznesit nga <a href="https://binisoft.github.io/binisoft-ad/" target="_blank" rel="noopener noreferrer">Binisoft</a>';
+  extras.appendChild(powered);
 }
 
 /**
@@ -268,6 +370,7 @@ function renderFooter(business, siteConfig) {
 export function applySiteConfig(business) {
   const siteConfig = business?.siteConfig;
   applySiteTheme(siteConfig);
+  applyStoreBranding(business);
   const map = sectionMap(siteConfig);
 
   for (const [id, domId] of Object.entries(SECTION_DOM)) {
@@ -288,6 +391,9 @@ export function applySiteConfig(business) {
     if (heroCfg?.description && taglineEl) taglineEl.textContent = heroCfg.description;
     if (eyebrowEl && !heroCfg?.title) eyebrowEl.textContent = business?.name || 'Mirësevini';
 
+    const ctaEl = document.getElementById('hero-cta');
+    if (ctaEl && heroCfg?.ctaLabel) ctaEl.textContent = heroCfg.ctaLabel;
+
     const coverEl = document.getElementById('hero-cover');
     let coverUrl = business?.coverImageUrl || '';
     if (heroCfg?.useProfileCover === false && heroCfg?.imageUrl) {
@@ -307,6 +413,7 @@ export function applySiteConfig(business) {
 
   setSectionHead(document.getElementById('offers'), map.get('offers'), 'Ofertat');
   setSectionHead(document.getElementById('shop-products'), map.get('products'), 'Produktet');
+  setSectionHead(document.getElementById('shop-services'), map.get('services'), 'Shërbimet');
   setSectionHead(document.getElementById('about'), map.get('about'), 'Rreth nesh');
   setSectionHead(document.getElementById('gallery'), map.get('gallery'), 'Galeria');
   setSectionHead(document.getElementById('contact'), map.get('contact'), 'Kontakt');

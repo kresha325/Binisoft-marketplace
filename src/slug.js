@@ -1,6 +1,23 @@
 /** URL path → business slug (multi-tenant storefront). */
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const MIN_SLUG_LENGTH = 2;
+
+/** Path segments that must not be treated as store slugs (assets, SPA files, …). */
+const RESERVED_SEGMENTS = new Set([
+  'assets',
+  'icons',
+  'src',
+  'api',
+  'public',
+  'marketplace',
+  'businesses',
+  'index.html',
+  '404.html',
+  'favicon.ico',
+  'favicon.svg',
+  'binisoft-logo.png',
+]);
 
 export function normalizeSlug(raw) {
   return String(raw || '')
@@ -32,7 +49,14 @@ export function getPathSegment() {
 }
 
 export function isValidSlug(slug) {
-  return Boolean(slug && SLUG_RE.test(slug));
+  if (!slug || slug.length < MIN_SLUG_LENGTH) return false;
+  if (RESERVED_SEGMENTS.has(slug)) return false;
+  return SLUG_RE.test(slug);
+}
+
+/** Raw first URL segment (may be invalid slug). */
+export function getRawPathSegment() {
+  return getPathSegment();
 }
 
 /**
