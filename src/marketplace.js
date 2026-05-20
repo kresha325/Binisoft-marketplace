@@ -17,6 +17,8 @@ function formatEuro(n) {
 let marketplaceData = null;
 let activeTab = 'stores';
 let searchQuery = '';
+/** @type {string | null} unified category key (see categoryGroupKey) */
+let selectedCategoryKey = null;
 
 export function isMarketplaceMode() {
   return document.body.dataset.mode === 'marketplace';
@@ -28,6 +30,64 @@ function filterBySearch(items, fields) {
   return items.filter((item) =>
     fields.some((f) => String(item[f] || '').toLowerCase().includes(q)),
   );
+}
+
+/** Group by display name (case-insensitive) so "Pizza" / "pizza" are one marketplace category. */
+function categoryGroupKey(c) {
+  const nameKey = String(c.name || '').trim().toLowerCase();
+  if (nameKey) return `name:${nameKey}`;
+  const slug = String(c.slug || '').trim().toLowerCase();
+  if (slug.length > 1) return `slug:${slug}`;
+  return `id:${c.businessId}:${c.id}`;
+}
+
+function buildUnifiedCategories(categories) {
+  const map = new Map();
+  for (const c of categories) {
+    const key = categoryGroupKey(c);
+    let group = map.get(key);
+    if (!group) {
+      group = {
+        key,
+        name: String(c.name || '').trim() || 'Kategori',
+        refs: [],
+        businessCount: 0,
+      };
+      map.set(key, group);
+    }
+    group.refs.push({
+      businessId: c.businessId,
+      categoryId: c.id,
+      businessSlug: c.businessSlug,
+      businessName: c.businessName,
+    });
+    const display = String(c.name || '').trim();
+    if (display && (!group.name || (group.name === group.name.toLowerCase() && display !== display.toLowerCase()))) {
+      group.name = display;
+    }
+  }
+  for (const group of map.values()) {
+    const biz = new Set(group.refs.map((r) => r.businessId));
+    group.businessCount = biz.size;
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, 'sq'));
+}
+
+function productsInCategoryGroup(group, products) {
+  if (!group) return [];
+  const refKeys = new Set(group.refs.map((r) => `${r.businessId}:${r.categoryId}`));
+  return products.filter((p) => {
+    const ids = p.categoryIds || [];
+    return ids.some((cid) => refKeys.has(`${p.businessId}:${cid}`));
+  });
+}
+
+function marketplaceStatsDisplay(stats, categories) {
+  const unified = buildUnifiedCategories(categories || []);
+  return {
+    ...stats,
+    categoryCount: unified.length,
+  };
 }
 
 function renderStats(stats) {
@@ -138,27 +198,45 @@ function renderProducts(products) {
     </div>`;
 }
 
-function renderCategories(categories) {
-  const list = filterBySearch(categories, ['name', 'businessName', 'description']);
+function renderUnifiedCategories(categories, products) {
+  const groups = buildUnifiedCategories(categories);
+  const list = filterBySearch(groups, ['name']);
   if (!list.length) {
     return '<p class="muted market-empty">Nuk u gjet asnjë kategori.</p>';
   }
   return `
+    <p class="market-category-hint muted">Zgjidhni një kategori për të parë produktet nga të gjitha dyqanet.</p>
     <div class="market-category-grid">
       ${list
-        .map(
-          (c) => `
-        <a class="market-category-card" href="${escapeHtml(shopPathFor(c.businessSlug))}#products">
-          <span class="market-category-card__icon">🏷️</span>
-          <div>
-            <h3>${escapeHtml(c.name)}</h3>
-            <p class="muted">${escapeHtml(c.businessName)}</p>
-            ${c.description ? `<p class="market-card-desc">${escapeHtml(c.description)}</p>` : ''}
+        .map((g) => {
+          const count = productsInCategoryGroup(g, products).length;
+          const bizLabel =
+            g.businessCount > 1 ? `${g.businessCount} dyqane` : g.refs[0]?.businessName || '';
+          return `
+        <button type="button" class="market-category-card" data-market-category="${escapeHtml(g.key)}">
+          <span class="market-category-card__icon" aria-hidden="true">🏷️</span>
+          <div class="market-category-card__body">
+            <h3>${escapeHtml(g.name)}</h3>
+            <p class="muted market-category-card__meta">${count} produkte${bizLabel ? ` · ${escapeHtml(bizLabel)}` : ''}</p>
           </div>
-        </a>`,
-        )
+        </button>`;
+        })
         .join('')}
     </div>`;
+}
+
+function renderCategoryProductsView(group, products) {
+  if (!group) {
+    return '<p class="muted market-empty">Kategoria nuk u gjet.</p>';
+  }
+  const filtered = productsInCategoryGroup(group, products);
+  return `
+    <div class="market-category-view">
+      <button type="button" class="market-back-btn" data-market-category-back>← Kategoritë</button>
+      <h2 class="market-category-view__title">${escapeHtml(group.name)}</h2>
+      <p class="muted market-category-view__sub">${filtered.length} produkte nga ${group.businessCount} ${group.businessCount === 1 ? 'dyqan' : 'dyqane'}</p>
+    </div>
+    ${renderProducts(filtered)}`;
 }
 
 function renderOffers(offers) {
@@ -193,9 +271,15 @@ function renderPanel() {
     case 'products':
       panel = renderProducts(products);
       break;
-    case 'categories':
-      panel = renderCategories(categories);
+    case 'categories': {
+      if (selectedCategoryKey) {
+        const group = buildUnifiedCategories(categories).find((g) => g.key === selectedCategoryKey);
+        panel = renderCategoryProductsView(group, products);
+      } else {
+        panel = renderUnifiedCategories(categories, products);
+      }
       break;
+    }
     case 'offers':
       panel = renderOffers(offers);
       break;
@@ -214,7 +298,7 @@ function renderPanel() {
           <input type="search" id="market-search-input" placeholder="Kërko dyqan, produkt, kategori…" value="${escapeHtml(searchQuery)}" />
         </label>
       </div>
-      ${renderStats(stats)}
+      ${renderStats(marketplaceStatsDisplay(stats, categories))}
       ${renderTabs()}
       <div class="market-panel" role="tabpanel">${panel}</div>
     </div>`;
@@ -224,14 +308,31 @@ function bindMarketplaceEvents(root) {
   root.querySelectorAll('[data-market-tab]').forEach((btn) => {
     btn.addEventListener('click', () => {
       activeTab = btn.getAttribute('data-market-tab') || 'stores';
+      selectedCategoryKey = null;
       root.innerHTML = renderPanel();
       bindMarketplaceEvents(root);
     });
   });
 
+
+  root.querySelectorAll('[data-market-category]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      selectedCategoryKey = btn.getAttribute('data-market-category');
+      root.innerHTML = renderPanel();
+      bindMarketplaceEvents(root);
+    });
+  });
+
+  root.querySelector('[data-market-category-back]')?.addEventListener('click', () => {
+    selectedCategoryKey = null;
+    root.innerHTML = renderPanel();
+    bindMarketplaceEvents(root);
+  });
+
   const searchInput = root.querySelector('#market-search-input');
   searchInput?.addEventListener('input', (e) => {
     searchQuery = e.target.value;
+    selectedCategoryKey = null;
     root.innerHTML = renderPanel();
     bindMarketplaceEvents(root);
     const next = root.querySelector('#market-search-input');

@@ -2721,25 +2721,84 @@ body[data-mode='marketplace'] .site-header {
   gap: 12px;
 }
 
+.market-category-hint {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 .market-category-card {
   display: flex;
   gap: 14px;
   align-items: flex-start;
+  width: 100%;
   padding: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   text-decoration: none;
+  text-align: left;
   color: inherit;
-  transition: border-color 0.15s;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
 }
 
 .market-category-card:hover {
   border-color: var(--yellow);
+  transform: translateY(-2px);
 }
 
 .market-category-card__icon {
   font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.market-category-card__body {
+  min-width: 0;
+}
+
+.market-category-card__body h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+}
+
+.market-category-card__meta {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.market-category-view {
+  margin-bottom: 20px;
+}
+
+.market-back-btn {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.market-back-btn:hover {
+  border-color: var(--yellow);
+}
+
+.market-category-view__title {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.market-category-view__sub {
+  margin: 0 0 16px;
 }
 
 .market-offers-grid {
