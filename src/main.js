@@ -153,6 +153,8 @@ let selectedCategoryId = '';
 let catalogExpanded = false;
 let shopLogoUrl = '';
 let offers = [];
+/** Products listed only in /offers (draft / onOfferHold), not in catalog `products`. */
+let offerProductsById = new Map();
 let services = [];
 let businessName = 'Biznesi';
 let businessProfile = {};
@@ -554,12 +556,34 @@ function formatOfferPeriod(startsAt, endsAt) {
   return `${start} – ${end}`;
 }
 
+function rebuildOfferProductIndex() {
+  offerProductsById = new Map();
+  for (const offer of offers) {
+    for (const item of offer.items || []) {
+      if (!item?.productId) continue;
+      offerProductsById.set(item.productId, {
+        id: item.productId,
+        name: item.productName || 'Produkt',
+        price: Number(item.salePrice ?? item.originalPrice ?? 0),
+        imageUrls: item.imageUrl ? [item.imageUrl] : [],
+      });
+    }
+  }
+}
+
 function productForCart(productId, salePrice) {
   const base = products.find((p) => p.id === productId);
-  if (!base) return null;
+  const fromOffer = offerProductsById.get(productId);
+  const line = base || fromOffer;
+  if (!line) return null;
+  const price =
+    salePrice != null && Number.isFinite(Number(salePrice))
+      ? Number(salePrice)
+      : Number(line.price ?? 0);
   return {
-    ...base,
-    price: salePrice != null ? Number(salePrice) : base.price,
+    ...line,
+    price,
+    imageUrls: line.imageUrls || (line.imageUrl ? [line.imageUrl] : []),
   };
 }
 
@@ -567,6 +591,7 @@ function addOfferProductToCart(productId, salePrice) {
   const product = productForCart(productId, salePrice);
   if (!product) return;
   renderCart(addToCart(product, 1, null, getSlug()));
+  openCart();
 }
 
 function phoneDigits(phone) {
@@ -1386,9 +1411,11 @@ async function loadOffers() {
   try {
     const data = await fetchOffers(getSlug());
     offers = data.offers || [];
+    rebuildOfferProductIndex();
     renderOffers();
   } catch {
     offers = [];
+    offerProductsById = new Map();
     renderOffers();
   }
 }
