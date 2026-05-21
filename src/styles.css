@@ -2955,6 +2955,39 @@ body.marketplace-theme--dark .market-search--hero input {
   gap: 16px;
 }
 
+.market-offer-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.market-offer-product-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+
+.market-offer-product-card__img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--navy) 80%, var(--surface));
+}
+
+.market-offer-product-card__img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.market-offer-product-card .product-body {
+  padding: 12px 14px 16px;
+}
+
 .market-offer-card {
   display: block;
   text-decoration: none;

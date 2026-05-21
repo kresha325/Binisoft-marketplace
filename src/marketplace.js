@@ -254,14 +254,62 @@ function renderCategoryProductsView(group, products) {
     ${renderProducts(filtered)}`;
 }
 
-function renderOffers(offers) {
-  const list = filterBySearch(offers, ['title', 'businessName', 'description']);
-  if (!list.length) {
-    return `<p class="muted market-empty">${escapeHtml(mt('emptyOffers'))}</p>`;
+function collectMarketplaceOfferProducts(offers) {
+  const rows = [];
+  for (const o of offers) {
+    for (const item of o.items || []) {
+      if (!item?.productId) continue;
+      rows.push({
+        ...item,
+        businessSlug: o.businessSlug,
+        businessName: o.businessName,
+        offerTitle: o.title,
+      });
+    }
   }
+  return rows;
+}
+
+function marketOfferPriceHtml(item) {
+  const sale = Number(item.salePrice) ?? 0;
+  const orig = Number(item.originalPrice) || 0;
+  const onOffer = orig > sale && sale >= 0;
+  if (onOffer) {
+    return `<p class="product-price"><span class="price-was">${formatEuro(orig)}</span> ${formatEuro(sale)}</p>`;
+  }
+  return `<p class="product-price">${formatEuro(sale)}</p>`;
+}
+
+function marketOfferProductThumb(item) {
+  const initial = escapeHtml((item.productName || '?').trim().slice(0, 1).toUpperCase());
+  if (item.imageUrl) {
+    return `<img src="${escapeHtml(item.imageUrl)}" alt="" class="market-offer-product-card__img" loading="lazy" decoding="async" />`;
+  }
+  return `<div class="market-offer-product-card__img market-offer-product-card__img--placeholder" aria-hidden="true"><span>${initial}</span></div>`;
+}
+
+function marketOfferProductCardHtml(item) {
+  const pct =
+    item.discountPercent != null && item.discountPercent > 0
+      ? Math.round(Number(item.discountPercent))
+      : 0;
+  return `
+    <a class="product-card product-card--offer market-offer-product-card" href="${escapeHtml(shopLink(item.businessSlug, '#offers'))}">
+      ${marketOfferProductThumb(item)}
+      <div class="product-body">
+        ${pct > 0 ? `<span class="offer-pct-badge">−${pct}%</span>` : ''}
+        <p class="market-product-card__store">${escapeHtml(item.businessName)}</p>
+        <h3>${escapeHtml(item.productName)}</h3>
+        ${marketOfferPriceHtml(item)}
+        ${item.onOfferHold ? `<p class="muted product-desc">${escapeHtml(mt('offerExclusive'))}</p>` : ''}
+      </div>
+    </a>`;
+}
+
+function renderOffersSummaryCards(offers) {
   return `
     <div class="offers-list market-offers-grid">
-      ${list
+      ${offers
         .map(
           (o) => `
         <a class="offer-card market-offer-card" href="${escapeHtml(shopLink(o.businessSlug, '#offers'))}">
@@ -275,6 +323,32 @@ function renderOffers(offers) {
         )
         .join('')}
     </div>`;
+}
+
+function renderOffers(offers) {
+  const list = filterBySearch(offers, ['title', 'businessName', 'description']);
+  let items = collectMarketplaceOfferProducts(list);
+  const q = searchQuery.trim().toLowerCase();
+  if (q) {
+    items = items.filter((item) =>
+      [item.productName, item.businessName, item.offerTitle].some((f) =>
+        String(f || '').toLowerCase().includes(q),
+      ),
+    );
+  }
+
+  if (items.length) {
+    return `
+      <div class="catalog market-offer-products-grid">
+        ${items.map((item) => marketOfferProductCardHtml(item)).join('')}
+      </div>`;
+  }
+
+  if (!list.length) {
+    return `<p class="muted market-empty">${escapeHtml(mt('emptyOffers'))}</p>`;
+  }
+
+  return renderOffersSummaryCards(list);
 }
 
 function renderPanel() {
