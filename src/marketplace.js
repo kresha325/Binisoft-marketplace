@@ -1,4 +1,5 @@
 import { fetchMarketplace } from './catalogApi.js';
+import { marketContestCardHtml } from './contests.js';
 import { appendLangQuery } from './locale.js';
 import { mt } from './marketplaceI18n.js';
 import { registerShopCheckout } from './shopCheckout.js';
@@ -104,12 +105,14 @@ function marketplaceStatsDisplay(stats, categories, offers = []) {
 
 function renderStats(stats) {
   const offerProducts = stats.offerProductCount ?? stats.offerCount ?? 0;
+  const contestCount = stats.contestCount ?? 0;
   return `
     <div class="market-stats">
       <div class="market-stat"><span class="market-stat__value">${stats.businessCount}</span><span class="market-stat__label">${escapeHtml(mt('statStores'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${stats.productCount}</span><span class="market-stat__label">${escapeHtml(mt('statProducts'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${stats.categoryCount}</span><span class="market-stat__label">${escapeHtml(mt('statCategories'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${offerProducts}</span><span class="market-stat__label">${escapeHtml(mt('statOfferProducts'))}</span></div>
+      ${contestCount > 0 ? `<div class="market-stat"><span class="market-stat__value">${contestCount}</span><span class="market-stat__label">${escapeHtml(mt('statContests'))}</span></div>` : ''}
     </div>`;
 }
 
@@ -119,6 +122,7 @@ function renderTabs() {
     { id: 'products', label: mt('tabProducts') },
     { id: 'categories', label: mt('tabCategories') },
     { id: 'offers', label: mt('tabOffers') },
+    { id: 'contests', label: mt('tabContests') },
   ];
   return `
     <div class="market-tabs" role="tablist">
@@ -180,6 +184,7 @@ function renderStores(businesses) {
               <span>${escapeHtml(mt('storeProducts', { n: b.productCount ?? 0 }))}</span>
               ${(b.categoryCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeCategories', { n: b.categoryCount }))}</span>` : ''}
               ${(b.offerProductCount ?? b.offerCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeOfferProducts', { n: b.offerProductCount ?? b.offerCount }))}</span>` : ''}
+              ${(b.contestCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeContests', { n: b.contestCount }))}</span>` : ''}
             </div>
             <span class="market-store-card__cta">${escapeHtml(mt('enterStore'))}</span>
           </div>
@@ -330,6 +335,14 @@ function renderOffersSummaryCards(offers) {
     </div>`;
 }
 
+function renderContests(contests) {
+  const list = filterBySearch(contests, ['title', 'businessName', 'description', 'prize']);
+  if (!list.length) {
+    return `<p class="muted market-empty">${escapeHtml(mt('emptyContests'))}</p>`;
+  }
+  return `<div class="market-contests-grid">${list.map((c) => marketContestCardHtml(c, shopLink)).join('')}</div>`;
+}
+
 function renderOffers(offers) {
   const list = filterBySearch(offers, ['title', 'businessName', 'description']);
   let items = collectMarketplaceOfferProducts(list);
@@ -358,7 +371,7 @@ function renderOffers(offers) {
 
 function renderPanel() {
   if (!marketplaceData) return '';
-  const { businesses, products, categories, offers, stats } = marketplaceData;
+  const { businesses, products, categories, offers, contests, stats } = marketplaceData;
 
   let panel = '';
   switch (activeTab) {
@@ -376,6 +389,9 @@ function renderPanel() {
     }
     case 'offers':
       panel = renderOffers(offers);
+      break;
+    case 'contests':
+      panel = renderContests(contests || []);
       break;
     default:
       panel = renderStores(businesses);

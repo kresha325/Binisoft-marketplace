@@ -4,6 +4,7 @@ export const STORE_VIEW_SECTIONS = {
   home: { sectionId: 'hero', scrollTop: true },
   products: { sectionId: 'shop-products' },
   offers: { sectionId: 'offers' },
+  contests: { sectionId: 'contests' },
   services: { sectionId: 'shop-services' },
   about: { sectionId: 'about' },
   gallery: { sectionId: 'gallery' },

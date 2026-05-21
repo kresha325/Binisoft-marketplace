@@ -77,6 +77,14 @@ export function offersUrl(slug = getSlug()) {
   return shopPath(slug, 'offers');
 }
 
+export function contestsUrl(slug = getSlug()) {
+  return shopPath(slug, 'contests');
+}
+
+export function contestEntryUrl(slug, contestId) {
+  return shopPath(slug, `contests/${contestId}/entries`);
+}
+
 export function servicesUrl(slug = getSlug()) {
   return shopPath(slug, 'services');
 }

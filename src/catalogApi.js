@@ -5,6 +5,7 @@ import {
   categoriesUrl,
   marketplaceUrl,
   offersUrl,
+  contestsUrl,
   servicesUrl,
 } from './config.js';
 import { appendLangQuery } from './locale.js';
@@ -58,6 +59,15 @@ export async function fetchOffers(slug) {
   return {
     business: data.business || null,
     offers: data.offers || [],
+  };
+}
+
+/** GET /api/shop/{slug}/contests */
+export async function fetchContests(slug) {
+  const data = await fetchJson(contestsUrl(slug));
+  return {
+    business: data.business || null,
+    contests: data.contests || [],
   };
 }
 

@@ -856,6 +856,153 @@ body[data-mode='store'] .shop-slug-line {
   font-size: 1.1rem;
 }
 
+/* ── Contests ── */
+.contests-section {
+  margin-bottom: 48px;
+}
+
+.contests-list,
+.contests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.contest-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--yellow) 22%, var(--border));
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.contest-card__media img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.contest-card__body {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contest-card__title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.contest-card__prize {
+  margin: 0;
+  color: var(--yellow);
+  font-weight: 600;
+}
+
+.contest-card__desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.contest-card__rules summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.contest-entry-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.contest-entry-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.contest-entry-form__field input,
+.contest-entry-form__field textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.contest-entry-form__status--ok {
+  color: #15803d;
+}
+
+.contest-entry-form__status--err {
+  color: #b91c1c;
+}
+
+.market-contests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.market-contest-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.market-contest-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+
+.market-contest-card__media {
+  height: 140px;
+  background-size: cover;
+  background-position: center;
+}
+
+.market-contest-card__media--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: color-mix(in srgb, var(--navy) 8%, var(--surface));
+}
+
+.market-contest-card__body {
+  padding: 16px 18px;
+}
+
+.market-contest-card__body h3 {
+  margin: 4px 0 6px;
+  font-size: 1.05rem;
+}
+
+.market-contest-card__prize {
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: var(--yellow);
+}
+
+.market-contest-card__cta {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--yellow);
+}
+
 /* ── Services (Rezervo WhatsApp) ── */
 .services-section {
   margin-bottom: 48px;
