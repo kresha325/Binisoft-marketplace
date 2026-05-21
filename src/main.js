@@ -1038,7 +1038,7 @@ function offerItemBodyHtml(item) {
       <div class="offer-item__info">
         <strong>${escapeHtml(item.productName)}</strong>
         ${offerItemPriceHtml(item)}
-        ${item.inactive ? '<p class="muted offer-item__hint">Jo në menu — aktivizoje te Produkte që të shtohet në shportë.</p>' : ''}
+        ${item.onOfferHold ? '<p class="muted offer-item__hint">Vetëm në këtë ofertë — nuk shfaqet në menunë e përgjithshme.</p>' : item.inactive ? '<p class="muted offer-item__hint">Produkti jo aktiv — aktivizoje te Produkte.</p>' : ''}
       </div>
     </div>`;
 }
@@ -1103,7 +1103,7 @@ function renderOffers() {
             : items
                 .map((item) => {
                   const addBtn =
-                    !item.inactive && isShopCartEnabled(getSlug())
+                    (item.onOfferHold || !item.inactive) && isShopCartEnabled(getSlug())
                       ? `<button type="button" class="add-btn add-btn--sm" data-offer-add="${item.productId}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>Shto</button>`
                       : '';
                   return `
