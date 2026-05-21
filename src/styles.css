@@ -186,6 +186,29 @@ body[data-mode='store'] .brand-logo.brand-logo--store {
   background: var(--yellow-hover, var(--yellow));
 }
 
+.header-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(100%, 280px);
+}
+
+.header-user__name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+@media (min-width: 520px) {
+  .header-user__name {
+    max-width: 200px;
+  }
+}
+
 .exit-to-marketplace {
   display: inline-flex;
   align-items: center;

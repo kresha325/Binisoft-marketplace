@@ -53,7 +53,9 @@ import {
 } from './pendingOrder.js';
 import { loadMarketplace, isMarketplaceMode } from './marketplace.js';
 import { marketplaceLangModalTitle, mt as marketMt } from './marketplaceI18n.js';
-import { dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
+import { getMarketplaceSession, initMarketplaceSession, onMarketplaceSessionChange } from './marketplaceSession.js';
+import { dashboardAppUrl, dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
+import { refreshMarketplaceHeroAuth } from './marketplace.js';
 import { businessTypeLabel } from './businessTypeLabels.js';
 import {
   applySiteConfig,
@@ -136,6 +138,9 @@ const siteNav = $('#site-nav');
 const brandLink = $('#brand-link');
 const headerLoginEl = $('#header-login');
 const headerRegisterEl = $('#header-register');
+const headerUserEl = $('#header-user');
+const headerUserNameEl = $('#header-user-name');
+const headerUserDashboardEl = $('#header-user-dashboard');
 const exitToMarketplaceBtn = $('#exit-to-marketplace');
 const langSwitcherEl = $('#lang-switcher');
 const themeToggleEl = $('#theme-toggle');
@@ -199,19 +204,31 @@ function displayShopName(name) {
   if (brandLink) brandLink.setAttribute('aria-label', `${text} — Kreu`);
 }
 
-/** Marketplace: login/register. Store: back-to-marketplace control. */
+/** Marketplace: login/register or active user. Store: back-to-marketplace (+ user if signed in). */
 function syncHeaderChrome() {
   const isMarket = document.body.dataset.mode === 'marketplace';
+  const { status, displayLabel, dashboardPath } = getMarketplaceSession();
+  const signedIn = status === 'signedIn' && displayLabel;
 
   if (headerLoginEl) {
     headerLoginEl.href = dashboardLoginUrl();
     headerLoginEl.textContent = marketMt('headerLogin');
-    headerLoginEl.classList.toggle('hidden', !isMarket);
+    headerLoginEl.classList.toggle('hidden', !isMarket || signedIn);
   }
   if (headerRegisterEl) {
     headerRegisterEl.href = dashboardRegisterUrl();
     headerRegisterEl.textContent = marketMt('headerRegister');
-    headerRegisterEl.classList.toggle('hidden', !isMarket);
+    headerRegisterEl.classList.toggle('hidden', !isMarket || signedIn);
+  }
+  if (headerUserEl && headerUserNameEl && headerUserDashboardEl) {
+    const showUser = signedIn;
+    headerUserEl.classList.toggle('hidden', !showUser);
+    headerUserEl.hidden = !showUser;
+    if (showUser) {
+      headerUserNameEl.textContent = marketMt('headerWelcome', { name: displayLabel });
+      headerUserDashboardEl.textContent = marketMt('headerDashboard');
+      headerUserDashboardEl.href = dashboardAppUrl(dashboardPath);
+    }
   }
   if (exitToMarketplaceBtn) {
     const label = exitToMarketplaceBtn.querySelector('.exit-to-marketplace__label');
@@ -2203,6 +2220,11 @@ initLangModal();
 initSiteNav();
 initScrollToTop();
 initExitToMarketplace();
+initMarketplaceSession();
+onMarketplaceSessionChange(() => {
+  syncHeaderChrome();
+  refreshMarketplaceHeroAuth();
+});
 syncHeaderChrome();
 
 $('#cart-toggle').addEventListener('click', openCart);

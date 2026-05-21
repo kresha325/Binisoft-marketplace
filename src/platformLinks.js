@@ -11,3 +11,8 @@ export function dashboardLoginUrl() {
 export function dashboardRegisterUrl() {
   return appendLangQuery(`${DASHBOARD_APP_BASE}/register`);
 }
+
+export function dashboardAppUrl(path = '/dashboard') {
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return appendLangQuery(`${DASHBOARD_APP_BASE}${p}`);
+}
