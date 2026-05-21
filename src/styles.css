@@ -183,6 +183,57 @@ body[data-mode='store'] .brand-logo.brand-logo--store {
   border-color: color-mix(in srgb, var(--yellow) 50%, var(--border));
 }
 
+/* ── Scroll to top ── */
+.scroll-to-top {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 44;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--yellow) 40%, var(--border));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-elevated);
+  cursor: pointer;
+  transition:
+    opacity 0.2s,
+    transform 0.2s,
+    background 0.15s,
+    border-color 0.15s,
+    visibility 0.2s;
+}
+
+.scroll-to-top:hover {
+  background: var(--yellow);
+  color: var(--yellow-text);
+  border-color: var(--yellow);
+  transform: translateY(-2px);
+}
+
+.scroll-to-top.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(12px);
+}
+
+body[data-mode='store'] .scroll-to-top {
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+body.cart-open .scroll-to-top,
+body.lang-modal-open .scroll-to-top {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .theme-toggle[hidden],
 .theme-toggle.hidden {
   display: none !important;
@@ -3095,7 +3146,8 @@ body.cart-open {
 .hero-cta:focus-visible,
 .add-btn:focus-visible,
 .nav-link:focus-visible,
-.store-bottom-nav__btn:focus-visible {
+.store-bottom-nav__btn:focus-visible,
+.scroll-to-top:focus-visible {
   outline: 2px solid var(--yellow);
   outline-offset: 2px;
 }

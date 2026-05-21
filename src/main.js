@@ -133,6 +133,7 @@ const langModal = $('#lang-modal');
 const langModalBackdrop = $('#lang-modal-backdrop');
 const langModalClose = $('#lang-modal-close');
 const langModalOptions = $('#lang-modal-options');
+const scrollToTopBtn = $('#scroll-to-top');
 const storeBottomNav = $('#store-bottom-nav');
 const bottomCartBtn = $('#bottom-cart');
 const bottomCartCount = $('#bottom-cart-count');
@@ -2049,9 +2050,28 @@ function restorePendingOnLoad() {
   }
 }
 
+function initScrollToTop() {
+  if (!scrollToTopBtn) return;
+  const threshold = 320;
+
+  const updateVisibility = () => {
+    const show = window.scrollY > threshold;
+    scrollToTopBtn.classList.toggle('hidden', !show);
+    scrollToTopBtn.setAttribute('aria-hidden', show ? 'false' : 'true');
+  };
+
+  scrollToTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  window.addEventListener('scroll', updateVisibility, { passive: true });
+  updateVisibility();
+}
+
 initGallery();
 initLangModal();
 initSiteNav();
+initScrollToTop();
 
 $('#cart-toggle').addEventListener('click', openCart);
 $('#cart-close').addEventListener('click', closeCart);
