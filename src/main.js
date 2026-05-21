@@ -155,6 +155,7 @@ let shopLogoUrl = '';
 let offers = [];
 /** Products listed only in /offers (draft / onOfferHold), not in catalog `products`. */
 let offerProductsById = new Map();
+let offersCarouselTimer = null;
 let services = [];
 let businessName = 'Biznesi';
 let businessProfile = {};
@@ -1049,37 +1050,110 @@ function priceHtml(price, originalPrice, onOffer) {
   return `<p class="product-price">${formatEuro(price ?? 0)}</p>`;
 }
 
-function offerItemThumbHtml(imageUrl) {
-  if (imageUrl) {
-    return `<img src="${escapeHtml(imageUrl)}" alt="" class="offer-item__thumb" loading="lazy" decoding="async" />`;
+function destroyOffersCarousel() {
+  if (offersCarouselTimer != null) {
+    clearInterval(offersCarouselTimer);
+    offersCarouselTimer = null;
   }
-  return '<div class="offer-item__thumb offer-item__thumb--placeholder" aria-hidden="true">📦</div>';
 }
 
-function offerItemBodyHtml(item) {
-  return `
-    <div class="offer-item__main">
-      ${offerItemThumbHtml(item.imageUrl)}
-      <div class="offer-item__info">
-        <strong>${escapeHtml(item.productName)}</strong>
-        ${offerItemPriceHtml(item)}
-        ${item.onOfferHold ? '<p class="muted offer-item__hint">Vetëm në këtë ofertë — nuk shfaqet në menunë e përgjithshme.</p>' : item.inactive ? '<p class="muted offer-item__hint">Produkti jo aktiv — aktivizoje te Produkte.</p>' : ''}
-      </div>
-    </div>`;
+function collectOfferProductItems() {
+  const rows = [];
+  for (const offer of offers) {
+    for (const item of offer.items || []) {
+      if (!item?.productId) continue;
+      rows.push({ ...item, offerTitle: offer.title });
+    }
+  }
+  return rows;
 }
 
-function offerItemPriceHtml(item) {
+function offerItemPriceAsProductHtml(item) {
+  const sale = Number(item.salePrice) ?? 0;
   const orig = Number(item.originalPrice) || 0;
-  const sale = Number(item.salePrice) ?? orig;
-  let pct =
-    item.discountPercent != null ? Math.round(Number(item.discountPercent)) : 0;
-  if (pct <= 0 && orig > sale) {
-    pct = Math.round((1 - sale / orig) * 100);
+  const onOffer = orig > sale && sale >= 0;
+  return priceHtml(sale, onOffer ? orig : null, onOffer);
+}
+
+function offerProductThumbHtml(item) {
+  const initial = escapeHtml((item.productName || '?').trim().slice(0, 1).toUpperCase());
+  if (item.imageUrl) {
+    return `<div class="product-thumb-btn product-thumb-btn--static" aria-hidden="true"><img src="${escapeHtml(item.imageUrl)}" alt="" loading="lazy" decoding="async" /></div>`;
   }
-  if (orig <= sale || pct <= 0) {
-    return `<span class="offer-item__price">${formatEuro(orig)}</span>`;
-  }
-  return `<span class="offer-item__price"><span class="price-was">${formatEuro(orig)}</span> <span class="price-now">${formatEuro(sale)}</span> <span class="offer-pct">−${pct}%</span></span>`;
+  return `<div class="product-thumb-btn product-thumb-btn--placeholder" aria-hidden="true"><span>${initial}</span></div>`;
+}
+
+function offerProductCardHtml(item) {
+  const canAdd = (item.onOfferHold || !item.inactive) && isShopCartEnabled(getSlug());
+  const pct =
+    item.discountPercent != null && item.discountPercent > 0
+      ? Math.round(Number(item.discountPercent))
+      : 0;
+  return `
+    <article class="product-card product-card--offer offers-carousel__slide">
+      ${offerProductThumbHtml(item)}
+      <div class="product-body">
+        ${pct > 0 ? `<span class="offer-pct-badge">−${pct}%</span>` : ''}
+        <h3>${escapeHtml(item.productName)}</h3>
+        ${offerItemPriceAsProductHtml(item)}
+        ${item.onOfferHold ? '<p class="muted product-desc">Vetëm në këtë ofertë</p>' : ''}
+      </div>
+      ${
+        canAdd
+          ? `<button type="button" class="add-btn" data-offer-add="${escapeHtml(item.productId)}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>Shto në shportë</button>`
+          : ''
+      }
+    </article>`;
+}
+
+function bindOfferAddButtons(root) {
+  root.querySelectorAll('[data-offer-add]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (hasActivePending()) return;
+      const productId = btn.getAttribute('data-offer-add');
+      const salePrice = Number(btn.getAttribute('data-offer-price'));
+      addOfferProductToCart(productId, salePrice);
+    });
+  });
+}
+
+function bindOffersCarousel(container) {
+  destroyOffersCarousel();
+  const track = container.querySelector('[data-offers-track]');
+  const slides = container.querySelectorAll('.offers-carousel__slide');
+  if (!track || slides.length < 2) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  let index = 0;
+  let paused = false;
+
+  const scrollToIndex = (i) => {
+    const slide = slides[i];
+    if (!slide) return;
+    const left = slide.offsetLeft - track.offsetLeft;
+    track.scrollTo({ left, behavior: 'smooth' });
+  };
+
+  const tick = () => {
+    if (paused) return;
+    index = (index + 1) % slides.length;
+    scrollToIndex(index);
+  };
+
+  offersCarouselTimer = setInterval(tick, 4500);
+
+  container.addEventListener('mouseenter', () => {
+    paused = true;
+  });
+  container.addEventListener('mouseleave', () => {
+    paused = false;
+  });
+  container.addEventListener('focusin', () => {
+    paused = true;
+  });
+  container.addEventListener('focusout', () => {
+    paused = false;
+  });
 }
 
 function syncStoreBottomNav() {
@@ -1097,6 +1171,8 @@ function bindEmptyStateActions(container) {
 }
 
 function renderOffers() {
+  destroyOffersCarousel();
+
   if (!offers.length) {
     offersListEl.innerHTML = emptyStateHtml({
       title: 'Nuk ka oferta aktive',
@@ -1107,51 +1183,30 @@ function renderOffers() {
     return;
   }
 
-  offersEmptyEl?.classList.add('hidden');
-  offersListEl.innerHTML = offers
-    .map((offer) => {
-      const period = formatOfferPeriod(offer.startsAt, offer.endsAt);
-      const items = offer.items || [];
-      return `
-    <article class="offer-card">
-      <header class="offer-card__head">
-        <div>
-          <h3 class="offer-card__title">${escapeHtml(offer.title)}</h3>
-          ${offer.description ? `<p class="offer-card__desc">${escapeHtml(offer.description)}</p>` : ''}
-        </div>
-        ${period ? `<span class="offer-badge">${escapeHtml(period)}</span>` : ''}
-      </header>
-      <div class="offer-items">
-        ${
-          items.length === 0
-            ? '<p class="muted">Nuk ka produkte në këtë ofertë.</p>'
-            : items
-                .map((item) => {
-                  const addBtn =
-                    (item.onOfferHold || !item.inactive) && isShopCartEnabled(getSlug())
-                      ? `<button type="button" class="add-btn add-btn--sm" data-offer-add="${item.productId}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>Shto</button>`
-                      : '';
-                  return `
-          <div class="offer-item${item.inactive ? ' offer-item--inactive' : ''}">
-            ${offerItemBodyHtml(item)}
-            ${addBtn}
-          </div>`;
-                })
-                .join('')
-        }
-      </div>
-    </article>`;
-    })
-    .join('');
-
-  offersListEl.querySelectorAll('[data-offer-add]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (hasActivePending()) return;
-      const productId = btn.getAttribute('data-offer-add');
-      const salePrice = Number(btn.getAttribute('data-offer-price'));
-      addOfferProductToCart(productId, salePrice);
+  const items = collectOfferProductItems();
+  if (!items.length) {
+    offersListEl.innerHTML = emptyStateHtml({
+      title: 'Nuk ka produkte në ofertë',
+      text: 'Shtoni produkte te ofertat aktive në admin.',
     });
-  });
+    offersEmptyEl?.classList.add('hidden');
+    bindEmptyStateActions(offersListEl);
+    return;
+  }
+
+  offersEmptyEl?.classList.add('hidden');
+  const cards = items.map((item) => offerProductCardHtml(item)).join('');
+  const autoSlide = items.length > 1;
+
+  offersListEl.innerHTML = `
+    <div class="offers-carousel${autoSlide ? ' offers-carousel--auto' : ' offers-carousel--single'}" data-offers-carousel>
+      <div class="offers-carousel__track" data-offers-track tabindex="0" aria-label="Produkte në ofertë">
+        ${cards}
+      </div>
+    </div>`;
+
+  bindOfferAddButtons(offersListEl);
+  if (autoSlide) bindOffersCarousel(offersListEl);
 }
 
 function variantSelectHtml(p) {

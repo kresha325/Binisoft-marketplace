@@ -707,13 +707,77 @@ body[data-mode='store'] .shop-slug-line {
   font-size: 0.9rem;
 }
 
-/* ── Offers ── */
+/* ── Offers (product-style carousel) ── */
 .offers-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  margin: 0;
 }
 
+.offers-carousel {
+  position: relative;
+  overflow: hidden;
+  padding: 4px 0 8px;
+}
+
+.offers-carousel__track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 4px 2px 16px;
+}
+
+.offers-carousel__track::-webkit-scrollbar {
+  display: none;
+}
+
+.offers-carousel__slide {
+  flex: 0 0 min(280px, calc(100vw - 48px));
+  max-width: 300px;
+  scroll-snap-align: start;
+}
+
+.offers-carousel--single .offers-carousel__track {
+  justify-content: center;
+}
+
+.offers-carousel--single .offers-carousel__slide {
+  flex: 0 1 min(300px, 100%);
+  max-width: 320px;
+}
+
+.product-thumb-btn--static {
+  cursor: default;
+  pointer-events: none;
+}
+
+.product-thumb-btn--static::after {
+  display: none;
+}
+
+.product-thumb-btn--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.offer-pct-badge {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--yellow-text);
+}
+
+/* Legacy offer list (marketplace grid) */
 .offer-card {
   background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--yellow) 25%, var(--border));
@@ -722,102 +786,9 @@ body[data-mode='store'] .shop-slug-line {
   box-shadow: var(--shadow-card);
 }
 
-.offer-card__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
 .offer-card__title {
   margin: 0 0 6px;
   font-size: 1.1rem;
-}
-
-.offer-card__desc {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--muted);
-  line-height: 1.4;
-}
-
-.offer-badge {
-  flex-shrink: 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--yellow);
-  color: var(--yellow-text);
-  white-space: nowrap;
-}
-
-.offer-items {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.offer-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: var(--navy);
-  border: 1px solid var(--border);
-}
-
-.offer-item__main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-}
-
-.offer-item__thumb {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.offer-item__thumb--placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--navy-light);
-  font-size: 1.25rem;
-}
-
-.offer-item__hint {
-  margin: 0;
-  font-size: 0.8rem;
-}
-
-.offer-item__info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.offer-item__info strong {
-  font-size: 0.95rem;
-}
-
-.offer-item__price {
-  font-size: 0.875rem;
-  color: var(--yellow);
-  font-weight: 600;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px;
 }
 
 /* ── Services (Rezervo WhatsApp) ── */
@@ -1854,7 +1825,8 @@ body.gallery-open {
 }
 
 body.shop-cart-disabled .add-btn,
-body.shop-cart-disabled [data-offer-add] {
+body.shop-cart-disabled [data-offer-add],
+body.shop-cart-disabled .offers-carousel .add-btn {
   display: none !important;
 }
 
