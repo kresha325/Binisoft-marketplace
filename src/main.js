@@ -1037,7 +1037,8 @@ function offerItemBodyHtml(item) {
       ${offerItemThumbHtml(item.imageUrl)}
       <div class="offer-item__info">
         <strong>${escapeHtml(item.productName)}</strong>
-        ${item.inactive ? '<p class="muted offer-item__hint">Produkti nuk është aktiv në katalog — aktivizoje te Produkte.</p>' : offerItemPriceHtml(item)}
+        ${offerItemPriceHtml(item)}
+        ${item.inactive ? '<p class="muted offer-item__hint">Jo në menu — aktivizoje te Produkte që të shtohet në shportë.</p>' : ''}
       </div>
     </div>`;
 }
