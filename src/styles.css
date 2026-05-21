@@ -78,6 +78,20 @@ body.nav-open {
   flex-shrink: 0;
 }
 
+.brand-logo-shell {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+/* Logo asset has a dark plate; on light header restore intended contrast */
+body.marketplace-theme:not(.marketplace-theme--dark) .brand-logo-shell {
+  background: var(--navy, #0a1628);
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+
 .brand-logo {
   display: block;
   height: 32px;
@@ -2537,6 +2551,20 @@ body.marketplace-theme.marketplace-theme--dark .theme-toggle__icon--moon {
   );
 }
 
+/* Light mode: show hero photo without heavy tint (original view) */
+body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__cover::after {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.22) 45%,
+    rgba(238, 242, 247, 0.55) 100%
+  );
+}
+
+body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__cover {
+  background-position: center center;
+}
+
 body.marketplace-theme--dark .marketplace-hero__cover::after {
   background: linear-gradient(
     180deg,
@@ -2579,6 +2607,28 @@ body.marketplace-theme--dark .marketplace-hero__cover::after {
   font-size: 1rem;
   line-height: 1.5;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.25);
+}
+
+body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__inner {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
+}
+
+body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__eyebrow {
+  color: var(--muted);
+}
+
+body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__title {
+  color: var(--text);
+  text-shadow: none;
+}
+
+body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__sub {
+  color: var(--muted);
+  text-shadow: none;
 }
 
 .market-search {
