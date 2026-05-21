@@ -1685,6 +1685,8 @@ function initThemeToggle() {
 const MARKETPLACE_ONLY_HIDDEN = [
   '#hero',
   '#offers',
+  '#contests',
+  '#job-openings',
   '#shop-services',
   '#about',
   '#gallery',
