@@ -2536,42 +2536,12 @@ body.marketplace-theme.marketplace-theme--dark .theme-toggle__icon--moon {
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: center 38%;
-}
-
-.marketplace-hero__cover::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(10, 22, 40, 0.2) 0%,
-    rgba(10, 22, 40, 0.45) 42%,
-    rgba(10, 22, 40, 0.78) 100%
-  );
-}
-
-/* Light mode: show hero photo without heavy tint (original view) */
-body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__cover::after {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.22) 45%,
-    rgba(238, 242, 247, 0.55) 100%
-  );
-}
-
-body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__cover {
   background-position: center center;
 }
 
-body.marketplace-theme--dark .marketplace-hero__cover::after {
-  background: linear-gradient(
-    180deg,
-    rgba(10, 22, 40, 0.35) 0%,
-    rgba(10, 22, 40, 0.55) 50%,
-    rgba(10, 22, 40, 0.88) 100%
-  );
+/* No tint/opacity on the photo — original image as uploaded */
+body.marketplace-theme .marketplace-hero__cover::after {
+  display: none;
 }
 
 .marketplace-hero__inner {
@@ -2610,11 +2580,17 @@ body.marketplace-theme--dark .marketplace-hero__cover::after {
 }
 
 body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__inner {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #ffffff;
   border-radius: var(--radius-md);
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+}
+
+body.marketplace-theme--dark .marketplace-hero__inner {
+  background: rgba(10, 22, 40, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__eyebrow {
