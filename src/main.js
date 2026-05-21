@@ -1543,15 +1543,15 @@ function renderContests() {
   const slug = getSlug();
   if (!contests.length) {
     contestsListEl.innerHTML = emptyStateHtml({
-      title: 'Nuk ka konkurse aktive',
-      text: 'Kthehuni më vonë për mundësi të reja për të fituar.',
+      title: 'Nuk ka dhurata aktive',
+      text: 'Kthehuni më vonë për mundësi të reja.',
     });
     contestsEmptyEl?.classList.add('hidden');
     bindEmptyStateActions(contestsListEl);
     return;
   }
   contestsEmptyEl?.classList.add('hidden');
-  contestsListEl.innerHTML = `<div class="contests-grid">${contests.map((c) => storeContestCardHtml(c, { slug, showForm: true })).join('')}</div>`;
+  contestsListEl.innerHTML = `<div class="contests-grid store-promo-grid">${contests.map((c) => storeContestCardHtml(c, { slug, showForm: true })).join('')}</div>`;
   bindContestEntryForms(contestsListEl, slug);
 }
 
@@ -1581,7 +1581,7 @@ function renderJobOpenings() {
     return;
   }
   jobOpeningsEmptyEl?.classList.add('hidden');
-  jobOpeningsListEl.innerHTML = `<div class="job-openings-grid">${jobOpenings.map((j) => storeJobOpeningCardHtml(j, { slug, showForm: true, locale })).join('')}</div>`;
+  jobOpeningsListEl.innerHTML = `<div class="job-openings-grid store-promo-grid">${jobOpenings.map((j) => storeJobOpeningCardHtml(j, { slug, showForm: true, locale })).join('')}</div>`;
   bindJobApplicationForms(jobOpeningsListEl, slug);
 }
 

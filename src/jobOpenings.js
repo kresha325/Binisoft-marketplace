@@ -93,30 +93,33 @@ export function storeJobOpeningCardHtml(job, { slug, showForm = true, locale = '
   const form =
     showForm && slug
       ? `
-    <form class="job-application-form" data-job-application="${escapeHtml(job.id)}" novalidate>
-      <label class="job-application-form__field">
-        <span>Emri *</span>
-        <input type="text" name="name" required minlength="2" autocomplete="name" />
-      </label>
-      <label class="job-application-form__field">
-        <span>Telefoni *</span>
-        <input type="tel" name="phone" required minlength="6" autocomplete="tel" />
-      </label>
-      <label class="job-application-form__field">
-        <span>Email</span>
-        <input type="email" name="email" autocomplete="email" />
-      </label>
-      <label class="job-application-form__field">
-        <span>Mesazh / CV (shënim)</span>
-        <textarea name="note" rows="3"></textarea>
-      </label>
-      <p class="job-application-form__status hidden" data-job-status role="status"></p>
-      <button type="submit" class="btn btn-primary job-application-form__submit">Apliko</button>
-    </form>`
+    <details class="store-card__entry">
+      <summary class="store-card__entry-summary">Apliko për pozicionin</summary>
+      <form class="job-application-form" data-job-application="${escapeHtml(job.id)}" novalidate>
+        <label class="job-application-form__field">
+          <span>Emri *</span>
+          <input type="text" name="name" required minlength="2" autocomplete="name" />
+        </label>
+        <label class="job-application-form__field">
+          <span>Telefoni *</span>
+          <input type="tel" name="phone" required minlength="6" autocomplete="tel" />
+        </label>
+        <label class="job-application-form__field">
+          <span>Email</span>
+          <input type="email" name="email" autocomplete="email" />
+        </label>
+        <label class="job-application-form__field">
+          <span>Mesazh / CV (shënim)</span>
+          <textarea name="note" rows="3"></textarea>
+        </label>
+        <p class="job-application-form__status hidden" data-job-status role="status"></p>
+        <button type="submit" class="btn btn-primary job-application-form__submit">Dërgo aplikimin</button>
+      </form>
+    </details>`
       : '';
 
   return `
-    <article class="job-card" data-job-id="${escapeHtml(job.id)}">
+    <article class="job-card store-promo-card" data-job-id="${escapeHtml(job.id)}">
       ${img}
       <div class="job-card__body">
         <h3 class="job-card__title">${escapeHtml(job.title || 'Pozicion')}</h3>

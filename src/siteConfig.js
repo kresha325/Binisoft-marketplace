@@ -109,7 +109,7 @@ const NAV_VIEW = {
 const DEFAULT_NAV_LABELS = {
   home: 'Kreu',
   offers: 'Oferta',
-  contests: 'Konkurset',
+  contests: 'Dhurata',
   jobs: 'Konkurse pune',
   products: 'Produkte',
   services: 'Shërbimet',
@@ -138,7 +138,7 @@ function sectionMap(siteConfig) {
   const map = new Map();
   for (const s of list) map.set(s.id, s);
   if (!map.has('contests')) {
-    map.set('contests', { id: 'contests', enabled: true, title: 'Konkurset' });
+    map.set('contests', { id: 'contests', enabled: true, title: 'Dhurata' });
   }
   if (!map.has('jobOpenings')) {
     map.set('jobOpenings', { id: 'jobOpenings', enabled: true, title: 'Konkurse pune' });
@@ -629,7 +629,7 @@ export function applySiteConfig(business) {
   }
 
   setSectionHead(document.getElementById('offers'), map.get('offers'), 'Ofertat');
-  setSectionHead(document.getElementById('contests'), map.get('contests'), 'Konkurset');
+  setSectionHead(document.getElementById('contests'), map.get('contests'), 'Dhurata');
   setSectionHead(document.getElementById('job-openings'), map.get('jobOpenings'), 'Konkurse pune');
   setSectionHead(document.getElementById('shop-products'), map.get('products'), 'Produktet');
   setSectionHead(document.getElementById('shop-services'), map.get('services'), 'Shërbimet');

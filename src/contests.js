@@ -56,33 +56,36 @@ export function storeContestCardHtml(contest, { slug, showForm = true }) {
   const form =
     showForm && slug
       ? `
-    <form class="contest-entry-form" data-contest-entry="${escapeHtml(contest.id)}" novalidate>
-      <label class="contest-entry-form__field">
-        <span>Emri *</span>
-        <input type="text" name="name" required minlength="2" autocomplete="name" />
-      </label>
-      <label class="contest-entry-form__field">
-        <span>Telefoni *</span>
-        <input type="tel" name="phone" required minlength="6" autocomplete="tel" />
-      </label>
-      <label class="contest-entry-form__field">
-        <span>Email</span>
-        <input type="email" name="email" autocomplete="email" />
-      </label>
-      <label class="contest-entry-form__field">
-        <span>Shënim</span>
-        <textarea name="note" rows="2"></textarea>
-      </label>
-      <p class="contest-entry-form__status hidden" data-contest-status role="status"></p>
-      <button type="submit" class="btn btn-primary contest-entry-form__submit">Merr pjesë</button>
-    </form>`
+    <details class="store-card__entry">
+      <summary class="store-card__entry-summary">Merr pjesë</summary>
+      <form class="contest-entry-form" data-contest-entry="${escapeHtml(contest.id)}" novalidate>
+        <label class="contest-entry-form__field">
+          <span>Emri *</span>
+          <input type="text" name="name" required minlength="2" autocomplete="name" />
+        </label>
+        <label class="contest-entry-form__field">
+          <span>Telefoni *</span>
+          <input type="tel" name="phone" required minlength="6" autocomplete="tel" />
+        </label>
+        <label class="contest-entry-form__field">
+          <span>Email</span>
+          <input type="email" name="email" autocomplete="email" />
+        </label>
+        <label class="contest-entry-form__field">
+          <span>Shënim</span>
+          <textarea name="note" rows="2"></textarea>
+        </label>
+        <p class="contest-entry-form__status hidden" data-contest-status role="status"></p>
+        <button type="submit" class="btn btn-primary contest-entry-form__submit">Dërgo</button>
+      </form>
+    </details>`
       : '';
 
   return `
-    <article class="contest-card" data-contest-id="${escapeHtml(contest.id)}">
+    <article class="contest-card store-promo-card" data-contest-id="${escapeHtml(contest.id)}">
       ${img}
       <div class="contest-card__body">
-        <h3 class="contest-card__title">${escapeHtml(contest.title || 'Konkurs')}</h3>
+        <h3 class="contest-card__title">${escapeHtml(contest.title || 'Dhuratë')}</h3>
         ${meta}
         ${prize}
         ${desc}
@@ -104,7 +107,7 @@ export function marketContestCardHtml(contest, shopLinkFn, _locale = 'sq') {
       ${img}
       <div class="market-contest-card__body">
         <span class="market-contest-card__biz muted">${escapeHtml(contest.businessName || '')}</span>
-        <h3>${escapeHtml(contest.title || 'Konkurs')}</h3>
+        <h3>${escapeHtml(contest.title || 'Dhuratë')}</h3>
         ${contest.prize ? `<p class="market-contest-card__prize">${escapeHtml(contest.prize)}</p>` : ''}
         ${period ? `<p class="muted market-contest-card__meta">${escapeHtml(period)}</p>` : ''}
         <span class="market-contest-card__cta">Hyr në dyqan →</span>

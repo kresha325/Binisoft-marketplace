@@ -948,16 +948,26 @@ body[data-mode='store'] .shop-slug-line {
   font-size: 1.1rem;
 }
 
-/* ── Contests ── */
-.contests-section {
-  margin-bottom: 48px;
+/* ── Dhurata (contests) & job openings — compact store promos ── */
+.contests-section,
+.job-openings-section {
+  margin-bottom: 36px;
 }
 
 .contests-list,
-.contests-grid {
+.contests-grid,
+.job-openings-list,
+.job-openings-grid,
+.store-promo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+  justify-content: start;
+}
+
+.store-promo-card {
+  max-width: 400px;
+  width: 100%;
 }
 
 .contest-card {
@@ -972,16 +982,16 @@ body[data-mode='store'] .shop-slug-line {
 
 .contest-card__media img {
   width: 100%;
-  height: 180px;
+  height: 140px;
   object-fit: cover;
   display: block;
 }
 
 .contest-card__body {
-  padding: 20px 22px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .contest-card__title {
@@ -995,21 +1005,66 @@ body[data-mode='store'] .shop-slug-line {
   font-weight: 600;
 }
 
-.contest-card__desc {
+.contest-card__desc,
+.job-card__desc {
   margin: 0;
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.contest-card__rules summary {
+.contest-card__rules summary,
+.job-card__req summary {
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.contest-card__rules p,
+.job-card__req p {
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.store-card__entry {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.store-card__entry-summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--yellow);
+  list-style: none;
+}
+
+.store-card__entry-summary::-webkit-details-marker {
+  display: none;
+}
+
+.store-card__entry-summary::after {
+  content: ' ▾';
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.store-card__entry[open] .store-card__entry-summary::after {
+  content: ' ▴';
 }
 
 .contest-entry-form {
   display: grid;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .contest-entry-form__field {
@@ -1096,17 +1151,6 @@ body[data-mode='store'] .shop-slug-line {
 }
 
 /* ── Job openings ── */
-.job-openings-section {
-  margin-bottom: 48px;
-}
-
-.job-openings-list,
-.job-openings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
 .job-card {
   display: flex;
   flex-direction: column;
@@ -1119,12 +1163,12 @@ body[data-mode='store'] .shop-slug-line {
 
 .job-card__media img {
   width: 100%;
-  height: 160px;
+  height: 130px;
   object-fit: cover;
 }
 
 .job-card__body {
-  padding: 20px 22px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1148,7 +1192,7 @@ body[data-mode='store'] .shop-slug-line {
 .job-application-form {
   display: grid;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
 .job-application-form__field {
