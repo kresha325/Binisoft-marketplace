@@ -1083,6 +1083,15 @@ function renderOffers() {
             ? '<p class="muted">Nuk ka produkte në këtë ofertë.</p>'
             : items
                 .map((item) => {
+                  if (item.inactive) {
+                    return `
+          <div class="offer-item offer-item--inactive">
+            <div class="offer-item__info">
+              <strong>${escapeHtml(item.productName)}</strong>
+              <p class="muted">Produkti nuk është aktiv në katalog — aktivizoje te Produkte.</p>
+            </div>
+          </div>`;
+                  }
                   return `
           <div class="offer-item">
             <div class="offer-item__info">
