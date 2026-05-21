@@ -90,21 +90,26 @@ function productsInCategoryGroup(group, products) {
   });
 }
 
-function marketplaceStatsDisplay(stats, categories) {
+function marketplaceStatsDisplay(stats, categories, offers = []) {
   const unified = buildUnifiedCategories(categories || []);
+  const offerProductCount =
+    stats?.offerProductCount ??
+    (offers || []).reduce((sum, o) => sum + (o.itemCount || o.items?.length || 0), 0);
   return {
     ...stats,
     categoryCount: unified.length,
+    offerProductCount,
   };
 }
 
 function renderStats(stats) {
+  const offerProducts = stats.offerProductCount ?? stats.offerCount ?? 0;
   return `
     <div class="market-stats">
       <div class="market-stat"><span class="market-stat__value">${stats.businessCount}</span><span class="market-stat__label">${escapeHtml(mt('statStores'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${stats.productCount}</span><span class="market-stat__label">${escapeHtml(mt('statProducts'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${stats.categoryCount}</span><span class="market-stat__label">${escapeHtml(mt('statCategories'))}</span></div>
-      <div class="market-stat"><span class="market-stat__value">${stats.offerCount}</span><span class="market-stat__label">${escapeHtml(mt('statOffers'))}</span></div>
+      <div class="market-stat"><span class="market-stat__value">${offerProducts}</span><span class="market-stat__label">${escapeHtml(mt('statOfferProducts'))}</span></div>
     </div>`;
 }
 
@@ -174,7 +179,7 @@ function renderStores(businesses) {
             <div class="market-store-card__counts">
               <span>${escapeHtml(mt('storeProducts', { n: b.productCount ?? 0 }))}</span>
               ${(b.categoryCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeCategories', { n: b.categoryCount }))}</span>` : ''}
-              ${(b.offerCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeOffers', { n: b.offerCount }))}</span>` : ''}
+              ${(b.offerProductCount ?? b.offerCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeOfferProducts', { n: b.offerProductCount ?? b.offerCount }))}</span>` : ''}
             </div>
             <span class="market-store-card__cta">${escapeHtml(mt('enterStore'))}</span>
           </div>
@@ -394,7 +399,7 @@ function renderPanel() {
           </label>
         </div>
       </div>
-      ${renderStats(marketplaceStatsDisplay(stats, categories))}
+      ${renderStats(marketplaceStatsDisplay(stats, categories, offers))}
       ${renderTabs()}
       <div class="market-panel" role="tabpanel">${panel}</div>
     </div>`;
