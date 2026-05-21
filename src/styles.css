@@ -2770,6 +2770,8 @@ body.marketplace-theme--dark .market-search--hero input {
   margin: 0 0 4px;
   font-size: 1.05rem;
   line-height: 1.2;
+  font-weight: 700;
+  color: var(--yellow);
 }
 
 .market-store-card__titles .business-card-slug {
