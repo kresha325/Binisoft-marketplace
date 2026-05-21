@@ -112,7 +112,7 @@ function renderStats(stats) {
       <div class="market-stat"><span class="market-stat__value">${stats.productCount}</span><span class="market-stat__label">${escapeHtml(mt('statProducts'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${stats.categoryCount}</span><span class="market-stat__label">${escapeHtml(mt('statCategories'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${offerProducts}</span><span class="market-stat__label">${escapeHtml(mt('statOfferProducts'))}</span></div>
-      ${contestCount > 0 ? `<div class="market-stat"><span class="market-stat__value">${contestCount}</span><span class="market-stat__label">${escapeHtml(mt('statContests'))}</span></div>` : ''}
+      <div class="market-stat"><span class="market-stat__value">${contestCount}</span><span class="market-stat__label">${escapeHtml(mt('statContests'))}</span></div>
     </div>`;
 }
 
