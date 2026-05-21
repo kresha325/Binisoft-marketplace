@@ -49,6 +49,12 @@ const STRINGS = {
     pageDescription:
       'Zbulo të gjitha dyqanet, produktet, kategoritë dhe ofertat në platformë.',
     langModalTitle: 'Gjuha',
+    headerLogin: 'Hyr',
+    headerRegister: 'Regjistrohu',
+    exitToMarketplace: 'Marketplace',
+    heroAuthHint: 'Ke biznes? Krijo llogari dhe shto dyqanin tënd në platformë.',
+    heroRegisterCta: 'Regjistro biznesin',
+    heroLoginCta: 'Hyr në panel',
   },
   en: {
     brandName: 'Marketplace',
@@ -97,6 +103,12 @@ const STRINGS = {
     pageTitle: 'Binisoft Marketplace — Shops & products',
     pageDescription: 'Discover all shops, products, categories and offers on the platform.',
     langModalTitle: 'Language',
+    headerLogin: 'Log in',
+    headerRegister: 'Sign up',
+    exitToMarketplace: 'Marketplace',
+    heroAuthHint: 'Have a business? Create an account and add your shop to the platform.',
+    heroRegisterCta: 'Register your business',
+    heroLoginCta: 'Open dashboard',
   },
   de: {
     brandName: 'Marketplace',
@@ -146,6 +158,12 @@ const STRINGS = {
     pageDescription:
       'Entdecken Sie alle Shops, Produkte, Kategorien und Angebote auf der Plattform.',
     langModalTitle: 'Sprache',
+    headerLogin: 'Anmelden',
+    headerRegister: 'Registrieren',
+    exitToMarketplace: 'Marketplace',
+    heroAuthHint: 'Eigenes Geschäft? Konto anlegen und Shop auf der Plattform veröffentlichen.',
+    heroRegisterCta: 'Geschäft registrieren',
+    heroLoginCta: 'Zum Dashboard',
   },
 };
 

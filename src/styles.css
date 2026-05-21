@@ -154,6 +154,75 @@ body[data-mode='store'] .brand-logo.brand-logo--store {
   flex-shrink: 0;
 }
 
+.header-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.header-auth-btn:hover {
+  border-color: color-mix(in srgb, var(--yellow) 45%, var(--border));
+}
+
+.header-auth-btn--primary {
+  background: var(--yellow);
+  color: var(--yellow-text, var(--navy));
+  border-color: transparent;
+}
+
+.header-auth-btn--primary:hover {
+  background: var(--yellow-hover, var(--yellow));
+}
+
+.exit-to-marketplace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--yellow) 35%, var(--border));
+  background: color-mix(in srgb, var(--yellow) 12%, var(--surface));
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.exit-to-marketplace:hover {
+  background: var(--yellow);
+  color: var(--yellow-text, var(--navy));
+  border-color: transparent;
+}
+
+.exit-to-marketplace__label {
+  display: none;
+}
+
+@media (min-width: 520px) {
+  .exit-to-marketplace__label {
+    display: inline;
+  }
+}
+
+body[data-mode='store'] .exit-to-marketplace {
+  order: -1;
+}
+
 .lang-switcher--trigger {
   min-width: 40px;
   height: 36px;
@@ -2873,6 +2942,24 @@ body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__eyebrow 
 body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__title {
   color: var(--text);
   text-shadow: none;
+}
+
+.marketplace-hero__auth-hint {
+  margin: 14px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  max-width: 36rem;
+}
+
+.marketplace-hero__auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.marketplace-hero__auth-btn {
+  text-decoration: none;
 }
 
 body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__sub {

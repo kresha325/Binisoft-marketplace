@@ -53,6 +53,7 @@ import {
 } from './pendingOrder.js';
 import { loadMarketplace, isMarketplaceMode } from './marketplace.js';
 import { marketplaceLangModalTitle, mt as marketMt } from './marketplaceI18n.js';
+import { dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
 import { businessTypeLabel } from './businessTypeLabels.js';
 import {
   applySiteConfig,
@@ -133,6 +134,9 @@ const footerYear = $('#footer-year');
 const navToggle = $('#nav-toggle');
 const siteNav = $('#site-nav');
 const brandLink = $('#brand-link');
+const headerLoginEl = $('#header-login');
+const headerRegisterEl = $('#header-register');
+const exitToMarketplaceBtn = $('#exit-to-marketplace');
 const langSwitcherEl = $('#lang-switcher');
 const themeToggleEl = $('#theme-toggle');
 const langModal = $('#lang-modal');
@@ -193,6 +197,35 @@ function displayShopName(name) {
   shopName.textContent = text;
   if (footerName) footerName.textContent = text;
   if (brandLink) brandLink.setAttribute('aria-label', `${text} — Kreu`);
+}
+
+/** Marketplace: login/register. Store: back-to-marketplace control. */
+function syncHeaderChrome() {
+  const isMarket = document.body.dataset.mode === 'marketplace';
+
+  if (headerLoginEl) {
+    headerLoginEl.href = dashboardLoginUrl();
+    headerLoginEl.textContent = marketMt('headerLogin');
+    headerLoginEl.classList.toggle('hidden', !isMarket);
+  }
+  if (headerRegisterEl) {
+    headerRegisterEl.href = dashboardRegisterUrl();
+    headerRegisterEl.textContent = marketMt('headerRegister');
+    headerRegisterEl.classList.toggle('hidden', !isMarket);
+  }
+  if (exitToMarketplaceBtn) {
+    const label = exitToMarketplaceBtn.querySelector('.exit-to-marketplace__label');
+    if (label) label.textContent = marketMt('exitToMarketplace');
+    exitToMarketplaceBtn.classList.toggle('hidden', isMarket);
+    exitToMarketplaceBtn.setAttribute('aria-label', marketMt('exitToMarketplace'));
+  }
+}
+
+function initExitToMarketplace() {
+  if (!exitToMarketplaceBtn) return;
+  exitToMarketplaceBtn.addEventListener('click', () => {
+    window.location.href = marketplaceHomePath();
+  });
 }
 
 function renderHeroStats(business) {
@@ -1718,6 +1751,7 @@ function applyMarketplaceLayout() {
   if (footerName) footerName.textContent = 'Binisoft Marketplace';
   refreshShopCheckoutUi();
   renderLangSwitcher();
+  syncHeaderChrome();
 }
 
 function applyStoreLayoutShell() {
@@ -1731,6 +1765,7 @@ function applyStoreLayoutShell() {
   navToggle?.classList.remove('hidden');
   heroTrust?.classList.remove('hidden');
   storeBottomNav?.classList.remove('hidden');
+  syncHeaderChrome();
 }
 
 async function renderMarketplaceHome() {
@@ -2167,6 +2202,8 @@ initGallery();
 initLangModal();
 initSiteNav();
 initScrollToTop();
+initExitToMarketplace();
+syncHeaderChrome();
 
 $('#cart-toggle').addEventListener('click', openCart);
 $('#cart-close').addEventListener('click', closeCart);

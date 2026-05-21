@@ -4,6 +4,7 @@ import { getShopLocale } from './locale.js';
 import { marketJobOpeningCardHtml } from './jobOpenings.js';
 import { appendLangQuery } from './locale.js';
 import { mt } from './marketplaceI18n.js';
+import { dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
 import { registerShopCheckout } from './shopCheckout.js';
 import { shopPathFor } from './slug.js';
 
@@ -431,6 +432,11 @@ function renderPanel() {
             <span class="visually-hidden">${escapeHtml(mt('searchLabel'))}</span>
             <input type="search" id="market-search-input" placeholder="${escapeHtml(mt('searchPlaceholder'))}" value="${escapeHtml(searchQuery)}" />
           </label>
+          <p class="marketplace-hero__auth-hint">${escapeHtml(mt('heroAuthHint'))}</p>
+          <div class="marketplace-hero__auth-actions">
+            <a class="hero-cta marketplace-hero__auth-btn" href="${escapeHtml(dashboardRegisterUrl())}">${escapeHtml(mt('heroRegisterCta'))}</a>
+            <a class="hero-cta hero-cta--secondary marketplace-hero__auth-btn" href="${escapeHtml(dashboardLoginUrl())}">${escapeHtml(mt('heroLoginCta'))}</a>
+          </div>
         </div>
       </div>
       ${renderStats(marketplaceStatsDisplay(stats, categories, offers))}
