@@ -770,6 +770,14 @@ body[data-mode='store'] .shop-slug-line {
   border: 1px solid var(--border);
 }
 
+.offer-item__main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
 .offer-item__thumb {
   width: 56px;
   height: 56px;

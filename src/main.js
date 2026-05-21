@@ -1033,10 +1033,12 @@ function offerItemThumbHtml(imageUrl) {
 
 function offerItemBodyHtml(item) {
   return `
-    ${offerItemThumbHtml(item.imageUrl)}
-    <div class="offer-item__info">
-      <strong>${escapeHtml(item.productName)}</strong>
-      ${item.inactive ? '<p class="muted offer-item__hint">Produkti nuk është aktiv në katalog — aktivizoje te Produkte.</p>' : offerItemPriceHtml(item)}
+    <div class="offer-item__main">
+      ${offerItemThumbHtml(item.imageUrl)}
+      <div class="offer-item__info">
+        <strong>${escapeHtml(item.productName)}</strong>
+        ${item.inactive ? '<p class="muted offer-item__hint">Produkti nuk është aktiv në katalog — aktivizoje te Produkte.</p>' : offerItemPriceHtml(item)}
+      </div>
     </div>`;
 }
 
