@@ -93,7 +93,7 @@ export function storeContestCardHtml(contest, { slug, showForm = true }) {
 }
 
 /** Marketplace summary card linking to store contests section. */
-export function marketContestCardHtml(contest, shopLinkFn) {
+export function marketContestCardHtml(contest, shopLinkFn, _locale = 'sq') {
   const href = shopLinkFn(contest.businessSlug, '#contests');
   const period = formatContestPeriod(contest.startsAt, contest.endsAt);
   const img = contest.imageUrl

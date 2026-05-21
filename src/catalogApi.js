@@ -6,6 +6,7 @@ import {
   marketplaceUrl,
   offersUrl,
   contestsUrl,
+  jobOpeningsUrl,
   servicesUrl,
 } from './config.js';
 import { appendLangQuery } from './locale.js';
@@ -68,6 +69,15 @@ export async function fetchContests(slug) {
   return {
     business: data.business || null,
     contests: data.contests || [],
+  };
+}
+
+/** GET /api/shop/{slug}/jobOpenings */
+export async function fetchJobOpenings(slug) {
+  const data = await fetchJson(jobOpeningsUrl(slug));
+  return {
+    business: data.business || null,
+    jobOpenings: data.jobOpenings || [],
   };
 }
 

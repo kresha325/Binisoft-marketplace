@@ -5,6 +5,7 @@ export const STORE_VIEW_SECTIONS = {
   products: { sectionId: 'shop-products' },
   offers: { sectionId: 'offers' },
   contests: { sectionId: 'contests' },
+  jobs: { sectionId: 'job-openings' },
   services: { sectionId: 'shop-services' },
   about: { sectionId: 'about' },
   gallery: { sectionId: 'gallery' },

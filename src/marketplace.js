@@ -1,5 +1,7 @@
 import { fetchMarketplace } from './catalogApi.js';
 import { marketContestCardHtml } from './contests.js';
+import { getShopLocale } from './locale.js';
+import { marketJobOpeningCardHtml } from './jobOpenings.js';
 import { appendLangQuery } from './locale.js';
 import { mt } from './marketplaceI18n.js';
 import { registerShopCheckout } from './shopCheckout.js';
@@ -113,6 +115,7 @@ function renderStats(stats) {
       <div class="market-stat"><span class="market-stat__value">${stats.categoryCount}</span><span class="market-stat__label">${escapeHtml(mt('statCategories'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${offerProducts}</span><span class="market-stat__label">${escapeHtml(mt('statOfferProducts'))}</span></div>
       <div class="market-stat"><span class="market-stat__value">${contestCount}</span><span class="market-stat__label">${escapeHtml(mt('statContests'))}</span></div>
+      <div class="market-stat"><span class="market-stat__value">${stats.jobOpeningCount ?? 0}</span><span class="market-stat__label">${escapeHtml(mt('statJobOpenings'))}</span></div>
     </div>`;
 }
 
@@ -123,6 +126,7 @@ function renderTabs() {
     { id: 'categories', label: mt('tabCategories') },
     { id: 'offers', label: mt('tabOffers') },
     { id: 'contests', label: mt('tabContests') },
+    { id: 'jobs', label: mt('tabJobOpenings') },
   ];
   return `
     <div class="market-tabs" role="tablist">
@@ -185,6 +189,7 @@ function renderStores(businesses) {
               ${(b.categoryCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeCategories', { n: b.categoryCount }))}</span>` : ''}
               ${(b.offerProductCount ?? b.offerCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeOfferProducts', { n: b.offerProductCount ?? b.offerCount }))}</span>` : ''}
               ${(b.contestCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeContests', { n: b.contestCount }))}</span>` : ''}
+              ${(b.jobOpeningCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeJobOpenings', { n: b.jobOpeningCount }))}</span>` : ''}
             </div>
             <span class="market-store-card__cta">${escapeHtml(mt('enterStore'))}</span>
           </div>
@@ -340,7 +345,17 @@ function renderContests(contests) {
   if (!list.length) {
     return `<p class="muted market-empty">${escapeHtml(mt('emptyContests'))}</p>`;
   }
-  return `<div class="market-contests-grid">${list.map((c) => marketContestCardHtml(c, shopLink)).join('')}</div>`;
+  const locale = getShopLocale();
+  return `<div class="market-contests-grid">${list.map((c) => marketContestCardHtml(c, shopLink, locale)).join('')}</div>`;
+}
+
+function renderJobOpenings(jobs) {
+  const list = filterBySearch(jobs, ['title', 'businessName', 'description', 'location']);
+  if (!list.length) {
+    return `<p class="muted market-empty">${escapeHtml(mt('emptyJobOpenings'))}</p>`;
+  }
+  const locale = getShopLocale();
+  return `<div class="market-jobs-grid">${list.map((j) => marketJobOpeningCardHtml(j, shopLink, locale)).join('')}</div>`;
 }
 
 function renderOffers(offers) {
@@ -371,7 +386,7 @@ function renderOffers(offers) {
 
 function renderPanel() {
   if (!marketplaceData) return '';
-  const { businesses, products, categories, offers, contests, stats } = marketplaceData;
+  const { businesses, products, categories, offers, contests, jobOpenings, stats } = marketplaceData;
 
   let panel = '';
   switch (activeTab) {
@@ -392,6 +407,9 @@ function renderPanel() {
       break;
     case 'contests':
       panel = renderContests(contests || []);
+      break;
+    case 'jobs':
+      panel = renderJobOpenings(jobOpenings || []);
       break;
     default:
       panel = renderStores(businesses);

@@ -85,6 +85,14 @@ export function contestEntryUrl(slug, contestId) {
   return shopPath(slug, `contests/${contestId}/entries`);
 }
 
+export function jobOpeningsUrl(slug = getSlug()) {
+  return shopPath(slug, 'jobOpenings');
+}
+
+export function jobApplicationUrl(slug, jobOpeningId) {
+  return shopPath(slug, `jobOpenings/${jobOpeningId}/applications`);
+}
+
 export function servicesUrl(slug = getSlug()) {
   return shopPath(slug, 'services');
 }
