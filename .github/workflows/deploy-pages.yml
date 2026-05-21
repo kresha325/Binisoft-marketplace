@@ -34,9 +34,11 @@ jobs:
         run: npm run build
 
       - name: Store slug indexes + SPA fallback (GitHub Pages deep links)
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
         run: |
           node tool/generate-store-paths.mjs
-          cp dist/index.html dist/404.html
+          node tool/build-spa-404.mjs
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

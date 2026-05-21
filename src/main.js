@@ -1864,15 +1864,35 @@ function showStoreLoadError(err, slug) {
   });
 }
 
+function showInvalidSlugBanner(segment) {
+  const banner = document.createElement('p');
+  banner.className = 'market-invalid-slug-banner';
+  banner.setAttribute('role', 'alert');
+  const hint =
+    segment && segment.includes('.')
+      ? `«${segment}» duket si website (p.sh. test.com), jo si slug dyqani. Slug-i është p.sh. napoletana-nostra.`
+      : `Adresa «/${segment}» nuk është slug i vlefshëm. Zgjidhni një dyqan më poshtë.`;
+  banner.textContent = hint;
+  catalogEl.prepend(banner);
+}
+
 async function loadShop() {
+  const params = new URLSearchParams(window.location.search);
+  const invalidFromQuery = params.get('invalidSlug')?.trim();
+  if (invalidFromQuery) {
+    params.delete('invalidSlug');
+    const qs = params.toString();
+    const clean = `${marketplaceHomePath()}${qs ? `?${qs}` : ''}`;
+    window.history.replaceState({}, '', clean);
+    await renderMarketplaceHome();
+    showInvalidSlugBanner(invalidFromQuery);
+    return;
+  }
+
   const rawSegment = getRawPathSegment();
   if (rawSegment && !isValidSlug(rawSegment)) {
     await renderMarketplaceHome();
-    const banner = document.createElement('p');
-    banner.className = 'market-invalid-slug-banner';
-    banner.setAttribute('role', 'alert');
-    banner.textContent = `Adresa «/${rawSegment}» nuk është slug i vlefshëm. Zgjidhni një dyqan më poshtë.`;
-    catalogEl.prepend(banner);
+    showInvalidSlugBanner(rawSegment);
     return;
   }
 
