@@ -1024,6 +1024,22 @@ function priceHtml(price, originalPrice, onOffer) {
   return `<p class="product-price">${formatEuro(price ?? 0)}</p>`;
 }
 
+function offerItemThumbHtml(imageUrl) {
+  if (imageUrl) {
+    return `<img src="${escapeHtml(imageUrl)}" alt="" class="offer-item__thumb" loading="lazy" decoding="async" />`;
+  }
+  return '<div class="offer-item__thumb offer-item__thumb--placeholder" aria-hidden="true">📦</div>';
+}
+
+function offerItemBodyHtml(item) {
+  return `
+    ${offerItemThumbHtml(item.imageUrl)}
+    <div class="offer-item__info">
+      <strong>${escapeHtml(item.productName)}</strong>
+      ${item.inactive ? '<p class="muted offer-item__hint">Produkti nuk është aktiv në katalog — aktivizoje te Produkte.</p>' : offerItemPriceHtml(item)}
+    </div>`;
+}
+
 function offerItemPriceHtml(item) {
   const orig = Number(item.originalPrice) || 0;
   const sale = Number(item.salePrice) ?? orig;
@@ -1083,26 +1099,14 @@ function renderOffers() {
             ? '<p class="muted">Nuk ka produkte në këtë ofertë.</p>'
             : items
                 .map((item) => {
-                  if (item.inactive) {
-                    return `
-          <div class="offer-item offer-item--inactive">
-            <div class="offer-item__info">
-              <strong>${escapeHtml(item.productName)}</strong>
-              <p class="muted">Produkti nuk është aktiv në katalog — aktivizoje te Produkte.</p>
-            </div>
-          </div>`;
-                  }
+                  const addBtn =
+                    !item.inactive && isShopCartEnabled(getSlug())
+                      ? `<button type="button" class="add-btn add-btn--sm" data-offer-add="${item.productId}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>Shto</button>`
+                      : '';
                   return `
-          <div class="offer-item">
-            <div class="offer-item__info">
-              <strong>${escapeHtml(item.productName)}</strong>
-              ${offerItemPriceHtml(item)}
-            </div>
-            ${
-              isShopCartEnabled(getSlug())
-                ? `<button type="button" class="add-btn add-btn--sm" data-offer-add="${item.productId}" data-offer-price="${item.salePrice}" ${hasActivePending() ? 'disabled' : ''}>Shto</button>`
-                : ''
-            }
+          <div class="offer-item${item.inactive ? ' offer-item--inactive' : ''}">
+            ${offerItemBodyHtml(item)}
+            ${addBtn}
           </div>`;
                 })
                 .join('')

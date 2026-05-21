@@ -770,6 +770,27 @@ body[data-mode='store'] .shop-slug-line {
   border: 1px solid var(--border);
 }
 
+.offer-item__thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.offer-item__thumb--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--navy-light);
+  font-size: 1.25rem;
+}
+
+.offer-item__hint {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
 .offer-item__info {
   display: flex;
   flex-direction: column;
