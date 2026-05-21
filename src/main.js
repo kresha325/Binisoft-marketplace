@@ -21,6 +21,7 @@ import {
   LOCALE_LABELS,
   setCatalogMeta,
   setShopLocale,
+  SUPPORTED_LOCALES,
 } from './locale.js';
 import {
   getRawPathSegment,
@@ -49,6 +50,7 @@ import {
   savePendingOrder,
 } from './pendingOrder.js';
 import { loadMarketplace, isMarketplaceMode } from './marketplace.js';
+import { marketplaceLangModalTitle, mt as marketMt } from './marketplaceI18n.js';
 import { businessTypeLabel } from './businessTypeLabels.js';
 import {
   applySiteConfig,
@@ -57,9 +59,11 @@ import {
   wireStoreCtas,
 } from './siteConfig.js';
 import { resolveGoogleMapsOpenUrl } from './googleMapsUrl.js';
+import { applyMarketplaceTheme, clearMarketplaceTheme } from './marketplaceTheme.js';
 import { applyProStoreTheme, clearProStoreTheme } from './storeProTheme.js';
 import {
   getStoredScheme,
+  MARKETPLACE_SCHEME_SLUG,
   SCHEME_DARK,
   toggleStoredScheme,
 } from './storeThemeMode.js';
@@ -615,9 +619,20 @@ function applyCheckoutFieldVisibility(cart = loadCart()) {
 }
 
 function applyCartChrome() {
+  if (document.body.dataset.mode === 'marketplace') {
+    cartToggleBtn?.classList.add('hidden');
+    cartToggleBtn?.setAttribute('hidden', '');
+    bottomCartBtn?.classList.add('hidden');
+    document.body.classList.add('shop-cart-disabled');
+    closeCart();
+    return;
+  }
+
   const storeSlug = currentStoreSlug();
   const enabled = isStoreMode() && storeSlug ? isShopCartEnabled(storeSlug) : true;
   cartToggleBtn?.classList.toggle('hidden', !enabled);
+  if (!enabled) cartToggleBtn?.setAttribute('hidden', '');
+  else cartToggleBtn?.removeAttribute('hidden');
   bottomCartBtn?.classList.toggle('hidden', !enabled);
   document.body.classList.toggle('shop-cart-disabled', isStoreMode() && !enabled);
   if (!enabled) closeCart();
@@ -1457,19 +1472,44 @@ function applyStoreColorScheme(scheme) {
 }
 
 function initThemeToggle() {
-  if (!themeToggleEl || !hasStoreSlug()) {
+  if (!themeToggleEl) return;
+
+  if (themeToggleEl.dataset.bound !== '1') {
+    themeToggleEl.dataset.bound = '1';
+    themeToggleEl.addEventListener('click', () => {
+      if (document.body.dataset.mode === 'marketplace') {
+        const next = toggleStoredScheme(MARKETPLACE_SCHEME_SLUG);
+        applyMarketplaceTheme(next);
+        updateThemeToggleUi(next);
+        return;
+      }
+      if (hasStoreSlug()) {
+        applyStoreColorScheme(toggleStoredScheme(getSlug()));
+      }
+    });
+  }
+
+  if (document.body.dataset.mode === 'marketplace') {
+    clearProStoreTheme();
+    const scheme = getStoredScheme(MARKETPLACE_SCHEME_SLUG);
+    applyMarketplaceTheme(scheme);
+    updateThemeToggleUi(scheme);
+    themeToggleEl.hidden = false;
+    themeToggleEl.classList.remove('hidden');
+    return;
+  }
+
+  clearMarketplaceTheme();
+
+  if (!hasStoreSlug()) {
     hideThemeToggle();
     return;
   }
+
   const scheme = getStoredScheme(getSlug());
   applyStoreColorScheme(scheme);
   themeToggleEl.hidden = false;
   themeToggleEl.classList.remove('hidden');
-  if (themeToggleEl.dataset.bound === '1') return;
-  themeToggleEl.dataset.bound = '1';
-  themeToggleEl.addEventListener('click', () => {
-    applyStoreColorScheme(toggleStoredScheme(getSlug()));
-  });
 }
 
 const MARKETPLACE_ONLY_HIDDEN = [
@@ -1494,14 +1534,18 @@ function applyMarketplaceLayout() {
   navToggle?.classList.add('hidden');
   heroTrust?.classList.add('hidden');
   storeBottomNav?.classList.add('hidden');
-  cartToggleBtn?.classList.remove('hidden');
-  displayShopName('Marketplace');
+  setCatalogMeta({
+    defaultLocale: getShopLocale(),
+    locales: SUPPORTED_LOCALES,
+  });
+  displayShopName(marketMt('brandName'));
   if (brandLink) {
     brandLink.href = marketplaceHomePath();
     brandLink.setAttribute('aria-label', 'Binisoft Marketplace — Kreu');
   }
   if (footerName) footerName.textContent = 'Binisoft Marketplace';
   refreshShopCheckoutUi();
+  renderLangSwitcher();
 }
 
 function applyStoreLayoutShell() {
@@ -1520,8 +1564,6 @@ function applyStoreLayoutShell() {
 async function renderMarketplaceHome() {
   storeBusinessProfile = null;
   storeCheckoutConfig = null;
-  clearProStoreTheme();
-  hideThemeToggle();
   applyMarketplaceLayout();
 
   await loadMarketplace({
@@ -1531,6 +1573,7 @@ async function renderMarketplaceHome() {
   });
 
   renderLangSwitcher();
+  initThemeToggle();
 }
 
 function showOrderKeyHint() {
@@ -1550,6 +1593,13 @@ function openLangModal() {
   const { locales } = getCatalogMeta();
   const active = getShopLocale();
   const available = locales.filter((code) => LOCALE_LABELS[code]);
+  const titleEl = document.getElementById('lang-modal-title');
+  if (titleEl) {
+    titleEl.textContent =
+      document.body.dataset.mode === 'marketplace'
+        ? marketplaceLangModalTitle()
+        : 'Gjuha';
+  }
   langModalOptions.replaceChildren();
   for (const code of available) {
     const btn = document.createElement('button');
@@ -1587,14 +1637,18 @@ function initLangModal() {
 
 function renderLangSwitcher() {
   if (!langSwitcherEl) return;
+  const isMarket = document.body.dataset.mode === 'marketplace';
   const { locales } = getCatalogMeta();
   const active = getShopLocale();
-  const available = locales.filter((code) => LOCALE_LABELS[code]);
-  if (available.length <= 1) {
+  const pool = isMarket ? SUPPORTED_LOCALES : locales;
+  const available = pool.filter((code) => LOCALE_LABELS[code]);
+  if (!isMarket && available.length <= 1) {
     langSwitcherEl.hidden = true;
+    langSwitcherEl.classList.add('hidden');
     return;
   }
   langSwitcherEl.hidden = false;
+  langSwitcherEl.classList.remove('hidden');
   langSwitcherEl.textContent = LOCALE_LABELS[active] || active.toUpperCase();
   langSwitcherEl.setAttribute('lang', active);
 }
@@ -1607,6 +1661,7 @@ function applyShopSeo(business) {
 function showStoreLoadError(err, slug) {
   document.body.dataset.mode = 'store';
   storeBusinessProfile = null;
+  clearMarketplaceTheme();
   hideThemeToggle();
   heroTrust?.classList.add('hidden');
   storeBottomNav?.classList.add('hidden');

@@ -1,6 +1,14 @@
 import { fetchMarketplace } from './catalogApi.js';
+import { appendLangQuery } from './locale.js';
+import { mt } from './marketplaceI18n.js';
 import { registerShopCheckout } from './shopCheckout.js';
 import { shopPathFor } from './slug.js';
+
+const MARKETPLACE_HERO_BG = `${import.meta.env.BASE_URL}images/marketplace-hero.png`;
+
+function shopLink(slug, hash = '') {
+  return appendLangQuery(`${shopPathFor(slug)}${hash}`);
+}
 
 function escapeHtml(s) {
   return String(s)
@@ -93,19 +101,19 @@ function marketplaceStatsDisplay(stats, categories) {
 function renderStats(stats) {
   return `
     <div class="market-stats">
-      <div class="market-stat"><span class="market-stat__value">${stats.businessCount}</span><span class="market-stat__label">Dyqane</span></div>
-      <div class="market-stat"><span class="market-stat__value">${stats.productCount}</span><span class="market-stat__label">Produkte</span></div>
-      <div class="market-stat"><span class="market-stat__value">${stats.categoryCount}</span><span class="market-stat__label">Kategori</span></div>
-      <div class="market-stat"><span class="market-stat__value">${stats.offerCount}</span><span class="market-stat__label">Oferta</span></div>
+      <div class="market-stat"><span class="market-stat__value">${stats.businessCount}</span><span class="market-stat__label">${escapeHtml(mt('statStores'))}</span></div>
+      <div class="market-stat"><span class="market-stat__value">${stats.productCount}</span><span class="market-stat__label">${escapeHtml(mt('statProducts'))}</span></div>
+      <div class="market-stat"><span class="market-stat__value">${stats.categoryCount}</span><span class="market-stat__label">${escapeHtml(mt('statCategories'))}</span></div>
+      <div class="market-stat"><span class="market-stat__value">${stats.offerCount}</span><span class="market-stat__label">${escapeHtml(mt('statOffers'))}</span></div>
     </div>`;
 }
 
 function renderTabs() {
   const tabs = [
-    { id: 'stores', label: 'Dyqane' },
-    { id: 'products', label: 'Produkte' },
-    { id: 'categories', label: 'Kategori' },
-    { id: 'offers', label: 'Oferta' },
+    { id: 'stores', label: mt('tabStores') },
+    { id: 'products', label: mt('tabProducts') },
+    { id: 'categories', label: mt('tabCategories') },
+    { id: 'offers', label: mt('tabOffers') },
   ];
   return `
     <div class="market-tabs" role="tablist">
@@ -139,7 +147,7 @@ function storeLogoHtml(b) {
 function renderStores(businesses) {
   const list = filterBySearch(businesses, ['name', 'slug', 'description', 'location']);
   if (!list.length) {
-    return '<p class="muted market-empty">Nuk u gjet asnjë dyqan.</p>';
+    return `<p class="muted market-empty">${escapeHtml(mt('emptyStores'))}</p>`;
   }
   return `
     <div class="business-grid market-grid">
@@ -151,7 +159,7 @@ function renderStores(businesses) {
               ? `${escapeHtml(desc.slice(0, 120))}…`
               : escapeHtml(desc);
           return `
-        <a class="business-card market-store-card" href="${escapeHtml(shopPathFor(b.slug))}">
+        <a class="business-card market-store-card" href="${escapeHtml(shopLink(b.slug))}">
           ${storeCoverHtml(b)}
           <div class="market-store-card__body">
             <div class="market-store-card__head">
@@ -164,28 +172,29 @@ function renderStores(businesses) {
             ${desc ? `<p class="market-card-desc">${descHtml}</p>` : ''}
             ${b.location ? `<p class="muted market-card-meta">📍 ${escapeHtml(b.location)}</p>` : ''}
             <div class="market-store-card__counts">
-              <span>${b.productCount ?? 0} produkte</span>
-              ${(b.categoryCount ?? 0) > 0 ? `<span>${b.categoryCount} kategori</span>` : ''}
-              ${(b.offerCount ?? 0) > 0 ? `<span>${b.offerCount} oferta</span>` : ''}
+              <span>${escapeHtml(mt('storeProducts', { n: b.productCount ?? 0 }))}</span>
+              ${(b.categoryCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeCategories', { n: b.categoryCount }))}</span>` : ''}
+              ${(b.offerCount ?? 0) > 0 ? `<span>${escapeHtml(mt('storeOffers', { n: b.offerCount }))}</span>` : ''}
             </div>
-            <span class="market-store-card__cta">Hyr në dyqan →</span>
+            <span class="market-store-card__cta">${escapeHtml(mt('enterStore'))}</span>
           </div>
         </a>`;
         })
         .join('')}
     </div>`;
 }
+
 function renderProducts(products) {
   const list = filterBySearch(products, ['name', 'businessName', 'businessSlug']);
   if (!list.length) {
-    return '<p class="muted market-empty">Nuk u gjet asnjë produkt.</p>';
+    return `<p class="muted market-empty">${escapeHtml(mt('emptyProducts'))}</p>`;
   }
   return `
     <div class="catalog market-product-grid">
       ${list
         .map(
           (p) => `
-        <a class="product-card market-product-card" href="${escapeHtml(shopPathFor(p.businessSlug))}#products">
+        <a class="product-card market-product-card" href="${escapeHtml(shopLink(p.businessSlug, '#products'))}">
           ${p.imageUrls?.[0] ? `<img src="${escapeHtml(p.imageUrls[0])}" alt="" class="market-product-card__img" loading="lazy" />` : '<div class="market-product-card__img market-product-card__img--placeholder">📦</div>'}
           <div class="product-body">
             <p class="market-product-card__store">${escapeHtml(p.businessName)}</p>
@@ -202,22 +211,24 @@ function renderUnifiedCategories(categories, products) {
   const groups = buildUnifiedCategories(categories);
   const list = filterBySearch(groups, ['name']);
   if (!list.length) {
-    return '<p class="muted market-empty">Nuk u gjet asnjë kategori.</p>';
+    return `<p class="muted market-empty">${escapeHtml(mt('emptyCategories'))}</p>`;
   }
   return `
-    <p class="market-category-hint muted">Zgjidhni një kategori për të parë produktet nga të gjitha dyqanet.</p>
+    <p class="market-category-hint muted">${escapeHtml(mt('categoryHint'))}</p>
     <div class="market-category-grid">
       ${list
         .map((g) => {
           const count = productsInCategoryGroup(g, products).length;
           const bizLabel =
-            g.businessCount > 1 ? `${g.businessCount} dyqane` : g.refs[0]?.businessName || '';
+            g.businessCount > 1
+              ? mt('storesCount', { n: g.businessCount })
+              : g.refs[0]?.businessName || '';
           return `
         <button type="button" class="market-category-card" data-market-category="${escapeHtml(g.key)}">
           <span class="market-category-card__icon" aria-hidden="true">🏷️</span>
           <div class="market-category-card__body">
             <h3>${escapeHtml(g.name)}</h3>
-            <p class="muted market-category-card__meta">${count} produkte${bizLabel ? ` · ${escapeHtml(bizLabel)}` : ''}</p>
+            <p class="muted market-category-card__meta">${escapeHtml(mt('productsCount', { n: count }))}${bizLabel ? ` · ${escapeHtml(bizLabel)}` : ''}</p>
           </div>
         </button>`;
         })
@@ -227,14 +238,18 @@ function renderUnifiedCategories(categories, products) {
 
 function renderCategoryProductsView(group, products) {
   if (!group) {
-    return '<p class="muted market-empty">Kategoria nuk u gjet.</p>';
+    return `<p class="muted market-empty">${escapeHtml(mt('categoryNotFound'))}</p>`;
   }
   const filtered = productsInCategoryGroup(group, products);
+  const storesLabel =
+    group.businessCount === 1 ? mt('storeCountOne') : mt('storesCount', { n: group.businessCount });
   return `
     <div class="market-category-view">
-      <button type="button" class="market-back-btn" data-market-category-back>← Kategoritë</button>
+      <button type="button" class="market-back-btn" data-market-category-back>${escapeHtml(mt('categoryBack'))}</button>
       <h2 class="market-category-view__title">${escapeHtml(group.name)}</h2>
-      <p class="muted market-category-view__sub">${filtered.length} produkte nga ${group.businessCount} ${group.businessCount === 1 ? 'dyqan' : 'dyqane'}</p>
+      <p class="muted market-category-view__sub">${escapeHtml(
+        mt('categoryViewSub', { n: filtered.length, stores: storesLabel }),
+      )}</p>
     </div>
     ${renderProducts(filtered)}`;
 }
@@ -242,18 +257,18 @@ function renderCategoryProductsView(group, products) {
 function renderOffers(offers) {
   const list = filterBySearch(offers, ['title', 'businessName', 'description']);
   if (!list.length) {
-    return '<p class="muted market-empty">Nuk ka oferta aktive.</p>';
+    return `<p class="muted market-empty">${escapeHtml(mt('emptyOffers'))}</p>`;
   }
   return `
     <div class="offers-list market-offers-grid">
       ${list
         .map(
           (o) => `
-        <a class="offer-card market-offer-card" href="${escapeHtml(shopPathFor(o.businessSlug))}#offers">
+        <a class="offer-card market-offer-card" href="${escapeHtml(shopLink(o.businessSlug, '#offers'))}">
           <header class="offer-card__head">
             <div>
               <h3 class="offer-card__title">${escapeHtml(o.title)}</h3>
-              <p class="muted">${escapeHtml(o.businessName)} · ${o.itemCount} produkte</p>
+              <p class="muted">${escapeHtml(o.businessName)} · ${escapeHtml(mt('offerProducts', { n: o.itemCount }))}</p>
             </div>
           </header>
         </a>`,
@@ -289,14 +304,21 @@ function renderPanel() {
 
   return `
     <div class="marketplace">
-      <div class="marketplace-hero">
-        <p class="hero-eyebrow">Binisoft Marketplace</p>
-        <h1 class="marketplace-hero__title">Zbulo dyqanet &amp; blerje online</h1>
-        <p class="marketplace-hero__sub">Të gjitha bizneset nga platforma — profilet krijohen nga admin dashboard dhe sinkronizohen automatikisht.</p>
-        <label class="market-search">
-          <span class="visually-hidden">Kërko</span>
-          <input type="search" id="market-search-input" placeholder="Kërko dyqan, produkt, kategori…" value="${escapeHtml(searchQuery)}" />
-        </label>
+      <div class="marketplace-hero marketplace-hero--photo">
+        <div
+          class="marketplace-hero__cover"
+          style="background-image:url('${MARKETPLACE_HERO_BG}')"
+          aria-hidden="true"
+        ></div>
+        <div class="marketplace-hero__inner">
+          <p class="marketplace-hero__eyebrow">${escapeHtml(mt('heroEyebrow'))}</p>
+          <h1 class="marketplace-hero__title">${escapeHtml(mt('heroTitle'))}</h1>
+          <p class="marketplace-hero__sub">${escapeHtml(mt('heroSub'))}</p>
+          <label class="market-search market-search--hero">
+            <span class="visually-hidden">${escapeHtml(mt('searchLabel'))}</span>
+            <input type="search" id="market-search-input" placeholder="${escapeHtml(mt('searchPlaceholder'))}" value="${escapeHtml(searchQuery)}" />
+          </label>
+        </div>
       </div>
       ${renderStats(marketplaceStatsDisplay(stats, categories))}
       ${renderTabs()}
@@ -313,7 +335,6 @@ function bindMarketplaceEvents(root) {
       bindMarketplaceEvents(root);
     });
   });
-
 
   root.querySelectorAll('[data-market-category]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -346,7 +367,7 @@ function bindMarketplaceEvents(root) {
 export async function loadMarketplace({ catalogEl, setCatalogMeta, applyDocumentSeo }) {
   document.body.dataset.mode = 'marketplace';
   document.body.dataset.shopView = 'marketplace';
-  catalogEl.innerHTML = '<p class="loading">Duke ngarkuar marketplace…</p>';
+  catalogEl.innerHTML = `<p class="loading">${escapeHtml(mt('loading'))}</p>`;
 
   try {
     const data = await fetchMarketplace();
@@ -354,8 +375,8 @@ export async function loadMarketplace({ catalogEl, setCatalogMeta, applyDocument
     (data.businesses || []).forEach((b) => registerShopCheckout(b));
     if (data.meta) setCatalogMeta(data.meta);
     applyDocumentSeo({
-      title: 'Binisoft Marketplace — Dyqane & produkte',
-      description: 'Zbulo të gjitha dyqanet, produktet, kategoritë dhe ofertat në platformë.',
+      title: mt('pageTitle'),
+      description: mt('pageDescription'),
       locale: data.meta?.locale,
     });
 

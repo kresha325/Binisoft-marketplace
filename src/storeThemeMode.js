@@ -3,6 +3,9 @@ const STORAGE_PREFIX = 'binisoft-store-scheme:';
 export const SCHEME_LIGHT = 'light';
 export const SCHEME_DARK = 'dark';
 
+/** localStorage key for marketplace home (/) theme preference */
+export const MARKETPLACE_SCHEME_SLUG = '__marketplace__';
+
 export function getStoredScheme(slug) {
   if (!slug) return SCHEME_LIGHT;
   try {

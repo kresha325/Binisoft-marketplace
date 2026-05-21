@@ -1,6 +1,7 @@
 /** Shop locale from ?lang=, localStorage, or business default (API meta). */
 
-const SUPPORTED = ['sq', 'en', 'de'];
+export const SUPPORTED_LOCALES = ['sq', 'en', 'de'];
+const SUPPORTED = SUPPORTED_LOCALES;
 
 let catalogMeta = {
   defaultLocale: 'sq',

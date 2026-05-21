@@ -2421,6 +2421,28 @@ body[data-mode='marketplace'] .site-header {
   border-bottom: 1px solid var(--border);
 }
 
+body[data-mode='marketplace'] #cart-toggle,
+body[data-mode='marketplace'] #cart-panel,
+body[data-mode='marketplace'] #cart-backdrop {
+  display: none !important;
+}
+
+body.marketplace-theme:not(.marketplace-theme--dark) {
+  background: var(--market-page-bg, #eef2f7);
+}
+
+body.marketplace-theme.marketplace-theme--dark {
+  background: var(--market-page-bg, var(--navy));
+}
+
+body.marketplace-theme:not(.marketplace-theme--dark) .theme-toggle__icon--sun {
+  display: none;
+}
+
+body.marketplace-theme.marketplace-theme--dark .theme-toggle__icon--moon {
+  display: none;
+}
+
 .marketplace {
   display: flex;
   flex-direction: column;
@@ -2432,25 +2454,99 @@ body[data-mode='marketplace'] .site-header {
   padding: 32px 20px 8px;
 }
 
+.marketplace-hero--photo {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  min-height: clamp(260px, 38vw, 400px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+}
+
+.marketplace-hero__cover {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center 38%;
+}
+
+.marketplace-hero__cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 22, 40, 0.2) 0%,
+    rgba(10, 22, 40, 0.45) 42%,
+    rgba(10, 22, 40, 0.78) 100%
+  );
+}
+
+body.marketplace-theme--dark .marketplace-hero__cover::after {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 22, 40, 0.35) 0%,
+    rgba(10, 22, 40, 0.55) 50%,
+    rgba(10, 22, 40, 0.88) 100%
+  );
+}
+
+.marketplace-hero__inner {
+  position: relative;
+  z-index: 1;
+  padding: 44px 24px 36px;
+  max-width: 640px;
+  width: 100%;
+}
+
+.marketplace-hero__eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .marketplace-hero__title {
-  margin: 8px 0 12px;
+  margin: 0 0 12px;
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
 }
 
 .marketplace-hero__sub {
   margin: 0 auto 20px;
   max-width: 560px;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 1rem;
   line-height: 1.5;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.25);
 }
 
 .market-search {
   display: block;
   max-width: 480px;
   margin: 0 auto;
+}
+
+.market-search--hero input {
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+body.marketplace-theme--dark .market-search--hero input {
+  background: rgba(17, 29, 51, 0.92);
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
 }
 
 .market-search input {
