@@ -1,13 +1,9 @@
 import { fetchMarketplace } from './catalogApi.js';
 import { cssBackgroundUrl, normalizeMediaUrl } from './externalUrl.js';
 import { marketContestCardHtml } from './contests.js';
-import { getShopLocale } from './locale.js';
 import { marketJobOpeningCardHtml } from './jobOpenings.js';
 import { appendLangQuery } from './locale.js';
 import { mt } from './marketplaceI18n.js';
-import { LOCALE_LABELS } from './locale.js';
-import { getMarketplaceSession } from './marketplaceSession.js';
-import { dashboardAppUrl, dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
 import { registerShopCheckout } from './shopCheckout.js';
 import { shopPathFor } from './slug.js';
 
@@ -38,35 +34,6 @@ function marketplaceTabLabel(tabId) {
   }[tabId] || tabId;
 }
 
-function heroToolsHtml() {
-  const activeLang = LOCALE_LABELS[getShopLocale()] || getShopLocale().toUpperCase();
-  return `
-          <div class="marketplace-hero__tools">
-            <button type="button" class="marketplace-hero__tool-btn" data-hero-action="theme">${escapeHtml(mt('menuTheme'))}</button>
-            <button type="button" class="marketplace-hero__tool-btn" data-hero-action="lang">${escapeHtml(activeLang)}</button>
-          </div>`;
-}
-
-function heroAuthBlockHtml() {
-  const { status, displayLabel, dashboardPath } = getMarketplaceSession();
-  let auth = '';
-  if (status === 'signedIn' && displayLabel) {
-    auth = `
-          <p class="marketplace-hero__auth-hint">${escapeHtml(mt('heroWelcome', { name: displayLabel }))}</p>
-          <div class="marketplace-hero__auth-actions">
-            <a class="hero-cta marketplace-hero__auth-btn" href="${escapeHtml(dashboardAppUrl(dashboardPath))}">${escapeHtml(mt('heroDashboardCta'))}</a>
-          </div>`;
-  } else {
-    auth = `
-          <p class="marketplace-hero__auth-hint">${escapeHtml(mt('heroAuthHint'))}</p>
-          <div class="marketplace-hero__auth-actions">
-            <a class="hero-cta marketplace-hero__auth-btn" href="${escapeHtml(dashboardRegisterUrl())}">${escapeHtml(mt('heroRegisterCta'))}</a>
-            <a class="hero-cta hero-cta--secondary marketplace-hero__auth-btn" href="${escapeHtml(dashboardLoginUrl())}">${escapeHtml(mt('heroLoginCta'))}</a>
-          </div>`;
-  }
-  return `${auth}${heroToolsHtml()}`;
-}
-
 /** Switch marketplace tab and re-render catalog (from burger menu, etc.). */
 export function setMarketplaceTab(tabId) {
   if (!marketplaceData || !MARKETPLACE_TAB_IDS.includes(tabId)) return;
@@ -86,16 +53,6 @@ export function getMarketplaceTabIds() {
 
 export function getActiveMarketplaceTab() {
   return activeTab;
-}
-
-/** Update hero auth strip after Firebase session resolves (no full reload). */
-export function refreshMarketplaceHeroAuth() {
-  if (!isMarketplaceMode()) return;
-  const account = document.getElementById('marketplace-hero-account');
-  if (!account) return;
-  account.innerHTML = heroAuthBlockHtml();
-  const catalog = document.getElementById('catalog');
-  if (catalog) bindMarketplaceEvents(catalog);
 }
 
 function formatEuro(n) {
@@ -503,9 +460,6 @@ function renderPanel() {
             <span class="visually-hidden">${escapeHtml(mt('searchLabel'))}</span>
             <input type="search" id="market-search-input" placeholder="${escapeHtml(mt('searchPlaceholder'))}" value="${escapeHtml(searchQuery)}" />
           </label>
-          <div class="marketplace-hero__account" id="marketplace-hero-account">
-            ${heroAuthBlockHtml()}
-          </div>
         </div>
       </div>
       ${renderStats(marketplaceStatsDisplay(stats, categories, offers))}
@@ -536,13 +490,6 @@ function bindMarketplaceEvents(root) {
     selectedCategoryKey = null;
     root.innerHTML = renderPanel();
     bindMarketplaceEvents(root);
-  });
-
-  root.querySelector('[data-hero-action="theme"]')?.addEventListener('click', () => {
-    document.getElementById('theme-toggle')?.click();
-  });
-  root.querySelector('[data-hero-action="lang"]')?.addEventListener('click', () => {
-    document.getElementById('lang-switcher')?.click();
   });
 
   const searchInput = root.querySelector('#market-search-input');

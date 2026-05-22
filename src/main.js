@@ -63,7 +63,6 @@ import { marketplaceLangModalTitle, mt as marketMt } from './marketplaceI18n.js'
 import { getMarketplaceSession, initMarketplaceSession, onMarketplaceSessionChange } from './marketplaceSession.js';
 import { cssBackgroundUrl, normalizeMediaUrl } from './externalUrl.js';
 import { dashboardAppUrl, dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
-import { refreshMarketplaceHeroAuth } from './marketplace.js';
 import { businessTypeLabel } from './businessTypeLabels.js';
 import {
   applySiteConfig,
@@ -2420,7 +2419,6 @@ initExitToMarketplace();
 initMarketplaceSession();
 onMarketplaceSessionChange(() => {
   syncHeaderChrome();
-  refreshMarketplaceHeroAuth();
   renderMarketplaceHeaderMenu();
 });
 initMarketplaceHeaderMenu();
