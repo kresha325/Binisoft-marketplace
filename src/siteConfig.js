@@ -1,4 +1,5 @@
 import { resolveGoogleMapsOpenUrl } from './googleMapsUrl.js';
+import { rebuildStoreBottomNav } from './storeResponsive.js';
 import {
   openWhatsApp,
   resolveContactCtaLabel,
@@ -206,39 +207,10 @@ function rebuildNav(siteConfig, siteNav) {
   }
 }
 
-function rebuildBottomNav(siteConfig, bottomNavEl) {
-  if (!bottomNavEl) return;
-  const cartBadgeHidden = document.getElementById('bottom-cart-count')?.classList.contains('hidden');
-  const cartCount = document.getElementById('bottom-cart-count')?.textContent || '0';
-  bottomNavEl.replaceChildren();
-
-  for (const link of buildNavLinks(siteConfig)) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'store-bottom-nav__btn';
-    btn.dataset.bottomNav = link.view;
-    btn.setAttribute('aria-label', link.label);
-    const paths = BOTTOM_NAV_SVG[link.view] || BOTTOM_NAV_SVG.contact;
-    btn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">${paths}</svg>`;
-    const labelSpan = document.createElement('span');
-    labelSpan.textContent = link.label;
-    btn.appendChild(labelSpan);
-    bottomNavEl.appendChild(btn);
-  }
-
-  const cartBtn = document.createElement('button');
-  cartBtn.type = 'button';
-  cartBtn.className = 'store-bottom-nav__btn store-bottom-nav__btn--cart';
-  cartBtn.id = 'bottom-cart';
-  cartBtn.setAttribute('aria-label', 'Shporta');
-  cartBtn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12L6 6z" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="20" r="1.5" fill="currentColor"/><circle cx="18" cy="20" r="1.5" fill="currentColor"/></svg><span>Shporta</span><span id="bottom-cart-count" class="store-bottom-nav__badge${cartBadgeHidden ? ' hidden' : ''}">${cartCount}</span>`;
-  bottomNavEl.appendChild(cartBtn);
-}
-
 /** Rebuild header + mobile bottom nav from siteConfig. */
 export function rebuildSiteNavigation(siteConfig) {
   rebuildNav(siteConfig, document.getElementById('site-nav'));
-  rebuildBottomNav(siteConfig, document.getElementById('store-bottom-nav'));
+  rebuildStoreBottomNav(siteConfig, document.getElementById('store-bottom-nav'));
 }
 
 function youtubeEmbedUrl(url) {

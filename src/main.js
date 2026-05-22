@@ -58,6 +58,7 @@ import {
   isMarketplaceMode,
   setMarketplaceTab,
 } from './marketplace.js';
+import { appendStoreDrawerExtras } from './storeResponsive.js';
 import { marketplaceLangModalTitle, mt as marketMt } from './marketplaceI18n.js';
 import { getMarketplaceSession, initMarketplaceSession, onMarketplaceSessionChange } from './marketplaceSession.js';
 import { dashboardAppUrl, dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
@@ -245,7 +246,35 @@ function syncHeaderChrome() {
     exitToMarketplaceBtn.setAttribute('aria-label', marketMt('exitToMarketplace'));
   }
 
-  if (isMarket) renderMarketplaceHeaderMenu();
+  if (isMarket) {
+    renderMarketplaceHeaderMenu();
+  } else {
+    refreshStoreDrawer();
+  }
+}
+
+function refreshStoreDrawer() {
+  if (document.body.dataset.mode !== 'store' || !siteNav) return;
+  if (!MARKETPLACE_MOBILE_MQ.matches) {
+    siteNav.querySelector('.store-drawer-extras')?.remove();
+    navToggle?.classList.add('hidden');
+    return;
+  }
+  navToggle?.classList.remove('hidden');
+  appendStoreDrawerExtras(siteNav, {
+    onTheme: () => {
+      themeToggleEl?.click();
+      closeMobileNav();
+    },
+    onLang: () => {
+      langSwitcherEl?.click();
+      closeMobileNav();
+    },
+    onMarketplace: () => {
+      window.location.href = marketplaceHomePath();
+    },
+    onClose: closeMobileNav,
+  });
 }
 
 const MARKETPLACE_MOBILE_MQ = window.matchMedia('(max-width: 900px)');
@@ -345,9 +374,11 @@ function initMarketplaceHeaderMenu() {
   if (marketplaceHeaderMenuMqBound) return;
   marketplaceHeaderMenuMqBound = true;
   MARKETPLACE_MOBILE_MQ.addEventListener('change', () => {
+    closeMobileNav();
     if (document.body.dataset.mode === 'marketplace') {
-      closeMobileNav();
       renderMarketplaceHeaderMenu();
+      syncHeaderChrome();
+    } else if (document.body.dataset.mode === 'store') {
       syncHeaderChrome();
     }
   });
@@ -658,11 +689,13 @@ function setShopView(view, options = {}) {
 function closeMobileNav() {
   document.body.classList.remove('nav-open');
   navToggle?.setAttribute('aria-expanded', 'false');
+  storeBottomNav?.querySelector('[data-bottom-nav="menu"]')?.classList.remove('is-active');
 }
 
 function openMobileNav() {
   document.body.classList.add('nav-open');
   navToggle?.setAttribute('aria-expanded', 'true');
+  storeBottomNav?.querySelector('[data-bottom-nav="menu"]')?.classList.add('is-active');
 }
 
 function initSiteNav() {
@@ -702,7 +735,14 @@ function initSiteNav() {
     }
     const btn = e.target.closest('[data-bottom-nav]');
     if (!btn) return;
-    setShopView(btn.getAttribute('data-bottom-nav') || 'home');
+    const view = btn.getAttribute('data-bottom-nav') || 'home';
+    if (view === 'menu') {
+      if (document.body.classList.contains('nav-open')) closeMobileNav();
+      else openMobileNav();
+      return;
+    }
+    closeMobileNav();
+    setShopView(view);
   });
 
   initStoreScrollSpy((view, meta) => {
@@ -1883,6 +1923,7 @@ function applyMarketplaceLayout() {
   renderLangSwitcher();
   syncHeaderChrome();
   renderMarketplaceHeaderMenu();
+  refreshStoreDrawer();
 }
 
 function applyStoreLayoutShell() {
@@ -2092,6 +2133,7 @@ async function loadShop() {
   renderLangSwitcher();
   applyShopSeo(business);
   const routing = applySiteConfig(business);
+  refreshStoreDrawer();
   renderContactCards(business);
   storeBusinessProfile = business;
   registerShopCheckout(business);

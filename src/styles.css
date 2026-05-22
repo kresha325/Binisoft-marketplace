@@ -2502,10 +2502,52 @@ code {
     display: flex;
   }
 
-  /* Store pages: bottom nav mjafton — pa burger / drawer */
-  body[data-mode='store'] .nav-toggle,
-  body[data-mode='store'] .site-nav {
+  /* Store: burger drawer for secondary sections + utilities */
+  body[data-mode='store'] .nav-toggle {
+    display: flex !important;
+  }
+
+  body[data-mode='store'] .header-actions > #cart-toggle,
+  body[data-mode='store'] .header-actions > #header-user,
+  body[data-mode='store'] .header-actions > #header-login,
+  body[data-mode='store'] .header-actions > #header-register,
+  body[data-mode='store'] .header-actions > #theme-toggle,
+  body[data-mode='store'] .header-actions > #lang-switcher {
     display: none !important;
+  }
+
+  body[data-mode='store'] .exit-to-marketplace {
+    order: 2;
+  }
+
+  body[data-mode='store'] .brand-name {
+    max-width: 5.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body[data-mode='store'].nav-open .site-nav {
+    display: flex !important;
+  }
+
+  body[data-mode='store'] .site-nav {
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  body[data-mode='store'] .site-nav .nav-link {
+    font-size: 1rem;
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+
+  .store-drawer-extras {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
   }
 
   .site-nav {
@@ -3653,8 +3695,8 @@ body.cart-open {
 
 .store-bottom-nav__btn {
   flex: 1 1 0;
-  min-width: 3.5rem;
-  max-width: 6.5rem;
+  min-width: 0;
+  max-width: none;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3683,6 +3725,13 @@ body.cart-open {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.62rem;
+  letter-spacing: 0.01em;
+}
+
+.store-bottom-nav__btn--menu.is-active {
+  color: var(--yellow);
+  background: color-mix(in srgb, var(--yellow) 12%, transparent);
 }
 
 .store-bottom-nav__btn:hover {
