@@ -11,6 +11,7 @@ import config, {
 import { fetchBusinesses, fetchCatalog, fetchContests, fetchJobOpenings, fetchOffers, fetchServices } from './catalogApi.js';
 import { bindContestEntryForms, storeContestCardHtml } from './contests.js';
 import { bindJobApplicationForms, storeJobOpeningCardHtml } from './jobOpenings.js';
+import { storeEmployeeCardHtml } from './employees.js';
 import {
   applyDocumentSeo,
   businessSeoFromProfile,
@@ -103,6 +104,8 @@ const contestsListEl = $('#contests-list');
 const contestsEmptyEl = $('#contests-empty');
 const jobOpeningsListEl = $('#job-openings-list');
 const jobOpeningsEmptyEl = $('#job-openings-empty');
+const employeesListEl = $('#employees-list');
+const employeesEmptyEl = $('#employees-empty');
 const servicesSection = $('#shop-services');
 const servicesListEl = $('#services-list');
 const servicesEmptyEl = $('#services-empty');
@@ -178,6 +181,7 @@ let shopLogoUrl = '';
 let offers = [];
 let contests = [];
 let jobOpenings = [];
+let employees = [];
 /** Products listed only in /offers (draft / onOfferHold), not in catalog `products`. */
 let offerProductsById = new Map();
 let offersCarouselTimer = null;
@@ -602,10 +606,11 @@ function updateShopPresentation(business) {
 }
 
 let SHOP_VIEWS = {
-  home: ['hero', 'offers', 'contests', 'job-openings', 'shop-services', 'shop-products', 'about', 'contact'],
+  home: ['hero', 'offers', 'contests', 'job-openings', 'employees', 'shop-services', 'shop-products', 'about', 'contact'],
   offers: ['offers'],
   contests: ['contests'],
   jobs: ['job-openings'],
+  team: ['employees'],
   products: ['shop-products'],
   services: ['shop-services'],
   about: ['about'],
@@ -618,6 +623,7 @@ let SHOP_SECTION_IDS = [
   'offers',
   'contests',
   'job-openings',
+  'employees',
   'shop-services',
   'shop-products',
   'about',
@@ -1761,6 +1767,21 @@ async function loadContests() {
   }
 }
 
+function renderEmployees() {
+  if (!employeesListEl) return;
+  if (!employees.length) {
+    employeesListEl.innerHTML = emptyStateHtml({
+      title: 'Nuk ka punëtorë në faqe',
+      text: 'Aktivizoni «Shfaq në faqen e dyqanit» te paneli Punëtorët.',
+    });
+    employeesEmptyEl?.classList.add('hidden');
+    bindEmptyStateActions(employeesListEl);
+    return;
+  }
+  employeesEmptyEl?.classList.add('hidden');
+  employeesListEl.innerHTML = `<div class="employees-grid store-promo-grid">${employees.map((e) => storeEmployeeCardHtml(e)).join('')}</div>`;
+}
+
 function renderJobOpenings() {
   if (!jobOpeningsListEl) return;
   const slug = getSlug();
@@ -2195,6 +2216,8 @@ async function loadShop() {
   selectedCategoryId = '';
   catalogExpanded = !isStoreMode() || parseShopViewFromHash() === 'products';
   products = data.products || [];
+  employees = data.employees || [];
+  renderEmployees();
   const countEl = document.getElementById('catalog-count');
   if (countEl && data.productCount != null) {
     countEl.textContent = `${data.productCount} produkte`;

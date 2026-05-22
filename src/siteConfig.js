@@ -89,6 +89,7 @@ const SECTION_DOM = {
   offers: 'offers',
   contests: 'contests',
   jobOpenings: 'job-openings',
+  employees: 'employees',
   products: 'shop-products',
   services: 'shop-services',
   about: 'about',
@@ -101,6 +102,7 @@ const NAV_VIEW = {
   offers: 'offers',
   contests: 'contests',
   jobOpenings: 'jobs',
+  employees: 'team',
   products: 'products',
   services: 'services',
   about: 'about',
@@ -113,6 +115,7 @@ const DEFAULT_NAV_LABELS = {
   offers: 'Oferta',
   contests: 'Dhurata',
   jobs: 'Konkurse pune',
+  team: 'Ekipi',
   products: 'Produkte',
   services: 'Shërbimet',
   about: 'Rreth nesh',
@@ -145,6 +148,9 @@ function sectionMap(siteConfig) {
   if (!map.has('jobOpenings')) {
     map.set('jobOpenings', { id: 'jobOpenings', enabled: true, title: 'Konkurse pune' });
   }
+  if (!map.has('employees')) {
+    map.set('employees', { id: 'employees', enabled: true, title: 'Ekipi' });
+  }
   return map;
 }
 
@@ -166,6 +172,8 @@ const BOTTOM_NAV_SVG = {
     '<path d="M8 21h8M12 17v4M7 4h10l1 4H6l1-4zM9 8v5M15 8v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
   jobs:
     '<rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M9 10h6M9 14h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  team:
+    '<path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/>',
   about:
     '<circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
   gallery:
@@ -178,7 +186,7 @@ const BOTTOM_NAV_SVG = {
 export function buildNavLinks(siteConfig) {
   const map = sectionMap(siteConfig);
   const links = [];
-  const sectionOrder = ['products', 'services', 'offers', 'contests', 'jobOpenings', 'about', 'gallery', 'contact'];
+  const sectionOrder = ['products', 'services', 'offers', 'contests', 'jobOpenings', 'employees', 'about', 'gallery', 'contact'];
   const anySection = sectionOrder.some((id) => isEnabled(map, id));
   if (isEnabled(map, 'hero') || anySection) {
     links.push({ view: 'home', label: DEFAULT_NAV_LABELS.home, href: '#' });
@@ -237,11 +245,11 @@ function youtubeEmbedUrl(url) {
 export function buildShopViews(siteConfig) {
   const map = sectionMap(siteConfig);
   const home = [];
-  for (const id of ['hero', 'offers', 'contests', 'jobOpenings', 'products', 'services', 'about', 'gallery', 'contact']) {
+  for (const id of ['hero', 'offers', 'contests', 'jobOpenings', 'employees', 'products', 'services', 'about', 'gallery', 'contact']) {
     if (isEnabled(map, id)) home.push(SECTION_DOM[id]);
   }
   const views = { home: home.length ? home : ['hero', 'shop-products', 'contact'] };
-  for (const id of ['offers', 'contests', 'jobOpenings', 'products', 'services', 'about', 'gallery', 'contact']) {
+  for (const id of ['offers', 'contests', 'jobOpenings', 'employees', 'products', 'services', 'about', 'gallery', 'contact']) {
     if (isEnabled(map, id)) views[NAV_VIEW[id]] = [SECTION_DOM[id]];
   }
   return views;
@@ -604,6 +612,7 @@ export function applySiteConfig(business) {
   setSectionHead(document.getElementById('offers'), map.get('offers'), 'Ofertat');
   setSectionHead(document.getElementById('contests'), map.get('contests'), 'Dhurata');
   setSectionHead(document.getElementById('job-openings'), map.get('jobOpenings'), 'Konkurse pune');
+  setSectionHead(document.getElementById('employees'), map.get('employees'), 'Ekipi');
   setSectionHead(document.getElementById('shop-products'), map.get('products'), 'Produktet');
   setSectionHead(document.getElementById('shop-services'), map.get('services'), 'Shërbimet');
   setSectionHead(document.getElementById('about'), map.get('about'), 'Rreth nesh');
