@@ -1,6 +1,6 @@
 import { dashboardAppUrl, dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
 import { getShopLocale, LOCALE_LABELS } from './locale.js';
-import { marketMt } from './marketplaceI18n.js';
+import { mt as marketMt } from './marketplaceI18n.js';
 import { getMarketplaceSession } from './marketplaceSession.js';
 import { buildNavLinks } from './siteConfig.js';
 
