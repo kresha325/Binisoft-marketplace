@@ -61,6 +61,7 @@ import {
 import { appendStoreDrawerExtras } from './storeResponsive.js';
 import { marketplaceLangModalTitle, mt as marketMt } from './marketplaceI18n.js';
 import { getMarketplaceSession, initMarketplaceSession, onMarketplaceSessionChange } from './marketplaceSession.js';
+import { cssBackgroundUrl, normalizeMediaUrl } from './externalUrl.js';
 import { dashboardAppUrl, dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
 import { refreshMarketplaceHeroAuth } from './marketplace.js';
 import { businessTypeLabel } from './businessTypeLabels.js';
@@ -530,7 +531,7 @@ function setHeroVisual(logoUrl, name) {
   if (logoUrl) {
     const img = document.createElement('img');
     img.className = 'hero-visual-logo';
-    img.src = logoUrl;
+    img.src = normalizeMediaUrl(logoUrl);
     img.alt = '';
     card.appendChild(img);
   } else {
@@ -581,10 +582,10 @@ function updateShopPresentation(business) {
 
   const coverEl = document.getElementById('hero-cover');
   const heroSection = document.getElementById('hero');
-  const coverUrl = business?.coverImageUrl || '';
+  const coverUrl = normalizeMediaUrl(business?.coverImageUrl || '');
   if (coverEl && heroSection) {
     if (coverUrl) {
-      coverEl.style.backgroundImage = `url(${coverUrl})`;
+      coverEl.style.backgroundImage = cssBackgroundUrl(coverUrl);
       coverEl.classList.remove('hidden');
       heroSection.classList.add('hero--with-cover');
     } else {
@@ -1248,9 +1249,9 @@ function updateOrderPreview() {
 }
 
 function cartItemImageUrl(item) {
-  if (item.imageUrl) return item.imageUrl;
+  if (item.imageUrl) return normalizeMediaUrl(item.imageUrl);
   const p = products.find((x) => x.id === item.productId);
-  return p?.imageUrls?.[0] || null;
+  return p?.imageUrls?.[0] ? normalizeMediaUrl(p.imageUrls[0]) : null;
 }
 
 function cartLineMediaHtml(item) {
@@ -1335,7 +1336,7 @@ function offerItemPriceAsProductHtml(item) {
 function offerProductThumbHtml(item) {
   const initial = escapeHtml((item.productName || '?').trim().slice(0, 1).toUpperCase());
   if (item.imageUrl) {
-    return `<div class="product-thumb-btn product-thumb-btn--static" aria-hidden="true"><img src="${escapeHtml(item.imageUrl)}" alt="" loading="lazy" decoding="async" /></div>`;
+    return `<div class="product-thumb-btn product-thumb-btn--static" aria-hidden="true"><img src="${escapeHtml(normalizeMediaUrl(item.imageUrl))}" alt="" loading="lazy" decoding="async" /></div>`;
   }
   return `<div class="product-thumb-btn product-thumb-btn--placeholder" aria-hidden="true"><span>${initial}</span></div>`;
 }
@@ -1497,7 +1498,7 @@ function productThumbHtml(p) {
   }
   return `
     <button type="button" class="product-thumb-btn" data-gallery="${p.id}" aria-label="Shiko fotot (${count})">
-      <img src="${escapeHtml(urls[0])}" alt="" loading="lazy" />
+      <img src="${escapeHtml(normalizeMediaUrl(urls[0]))}" alt="" loading="lazy" />
       ${count > 1 ? `<span class="product-thumb-badge">${count}</span>` : ''}
     </button>`;
 }

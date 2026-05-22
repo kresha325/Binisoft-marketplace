@@ -1,4 +1,5 @@
 import { fetchMarketplace } from './catalogApi.js';
+import { cssBackgroundUrl, normalizeMediaUrl } from './externalUrl.js';
 import { marketContestCardHtml } from './contests.js';
 import { getShopLocale } from './locale.js';
 import { marketJobOpeningCardHtml } from './jobOpenings.js';
@@ -212,16 +213,18 @@ function renderTabs() {
 }
 
 function storeCoverHtml(b) {
-  if (b.coverImageUrl) {
-    return `<div class="market-store-card__cover" style="background-image:url(${escapeHtml(b.coverImageUrl)})"></div>`;
+  const cover = normalizeMediaUrl(b.coverImageUrl);
+  if (cover) {
+    return `<div class="market-store-card__cover" style="background-image:${escapeHtml(cssBackgroundUrl(cover))}"></div>`;
   }
   const initial = escapeHtml((b.name || '?').trim().slice(0, 1).toUpperCase());
   return `<div class="market-store-card__cover market-store-card__cover--placeholder" aria-hidden="true"><span>${initial}</span></div>`;
 }
 
 function storeLogoHtml(b) {
-  if (b.logoUrl) {
-    return `<img src="${escapeHtml(b.logoUrl)}" alt="" class="market-store-card__logo" loading="lazy" decoding="async" />`;
+  const logo = normalizeMediaUrl(b.logoUrl);
+  if (logo) {
+    return `<img src="${escapeHtml(logo)}" alt="" class="market-store-card__logo" loading="lazy" decoding="async" />`;
   }
   return '<div class="market-store-card__logo market-store-card__logo--placeholder" aria-hidden="true">🛒</div>';
 }
@@ -279,7 +282,7 @@ function renderProducts(products) {
         .map(
           (p) => `
         <a class="product-card market-product-card" href="${escapeHtml(shopLink(p.businessSlug, '#products'))}">
-          ${p.imageUrls?.[0] ? `<img src="${escapeHtml(p.imageUrls[0])}" alt="" class="market-product-card__img" loading="lazy" />` : '<div class="market-product-card__img market-product-card__img--placeholder">📦</div>'}
+          ${p.imageUrls?.[0] ? `<img src="${escapeHtml(normalizeMediaUrl(p.imageUrls[0]))}" alt="" class="market-product-card__img" loading="lazy" />` : '<div class="market-product-card__img market-product-card__img--placeholder">📦</div>'}
           <div class="product-body">
             <p class="market-product-card__store">${escapeHtml(p.businessName)}</p>
             <h3>${escapeHtml(p.name)}</h3>
@@ -367,7 +370,7 @@ function marketOfferPriceHtml(item) {
 function marketOfferProductThumb(item) {
   const initial = escapeHtml((item.productName || '?').trim().slice(0, 1).toUpperCase());
   if (item.imageUrl) {
-    return `<img src="${escapeHtml(item.imageUrl)}" alt="" class="market-offer-product-card__img" loading="lazy" decoding="async" />`;
+    return `<img src="${escapeHtml(normalizeMediaUrl(item.imageUrl))}" alt="" class="market-offer-product-card__img" loading="lazy" decoding="async" />`;
   }
   return `<div class="market-offer-product-card__img market-offer-product-card__img--placeholder" aria-hidden="true"><span>${initial}</span></div>`;
 }

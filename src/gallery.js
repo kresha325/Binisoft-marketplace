@@ -1,3 +1,5 @@
+import { normalizeMediaUrl } from './externalUrl.js';
+
 const modal = () => document.getElementById('gallery-modal');
 const imgEl = () => document.getElementById('gallery-img');
 const titleEl = () => document.getElementById('gallery-title');
@@ -31,7 +33,7 @@ function render() {
 }
 
 export function openGallery({ name, imageUrls }) {
-  const urls = (imageUrls || []).filter(Boolean);
+  const urls = (imageUrls || []).map((u) => normalizeMediaUrl(u)).filter(Boolean);
   if (!urls.length) return;
   state = { urls, index: 0, name: name || 'Produkt' };
   render();

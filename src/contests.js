@@ -1,4 +1,5 @@
 import { contestEntryUrl } from './config.js';
+import { cssBackgroundUrl, normalizeMediaUrl } from './externalUrl.js';
 import { appendLangQuery } from './locale.js';
 
 function escapeHtml(s) {
@@ -36,7 +37,7 @@ export function formatContestPeriod(startsAt, endsAt) {
 export function storeContestCardHtml(contest, { slug, showForm = true }) {
   const period = formatContestPeriod(contest.startsAt, contest.endsAt);
   const img = contest.imageUrl
-    ? `<div class="contest-card__media"><img src="${escapeHtml(contest.imageUrl)}" alt="" loading="lazy" /></div>`
+    ? `<div class="contest-card__media"><img src="${escapeHtml(normalizeMediaUrl(contest.imageUrl))}" alt="" loading="lazy" /></div>`
     : '';
   const prize = contest.prize
     ? `<p class="contest-card__prize"><strong>Çmimi:</strong> ${escapeHtml(contest.prize)}</p>`
@@ -100,7 +101,7 @@ export function marketContestCardHtml(contest, shopLinkFn, _locale = 'sq') {
   const href = shopLinkFn(contest.businessSlug, '#contests');
   const period = formatContestPeriod(contest.startsAt, contest.endsAt);
   const img = contest.imageUrl
-    ? `<div class="market-contest-card__media" style="background-image:url(${escapeHtml(contest.imageUrl)})"></div>`
+    ? `<div class="market-contest-card__media" style="background-image:${escapeHtml(cssBackgroundUrl(contest.imageUrl))}"></div>`
     : '<div class="market-contest-card__media market-contest-card__media--placeholder" aria-hidden="true">🏆</div>';
   return `
     <a class="market-contest-card" href="${escapeHtml(href)}">

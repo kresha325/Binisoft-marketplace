@@ -1,4 +1,5 @@
 import { jobApplicationUrl } from './config.js';
+import { cssBackgroundUrl, normalizeExternalUrl, normalizeMediaUrl } from './externalUrl.js';
 import { appendLangQuery } from './locale.js';
 
 function escapeHtml(s) {
@@ -65,7 +66,7 @@ export function storeJobOpeningCardHtml(job, { slug, showForm = true, locale = '
   const period = formatJobPeriod(job.startsAt, job.endsAt);
   const emp = employmentTypeLabel(job.employmentType, locale);
   const img = job.imageUrl
-    ? `<div class="job-card__media"><img src="${escapeHtml(job.imageUrl)}" alt="" loading="lazy" /></div>`
+    ? `<div class="job-card__media"><img src="${escapeHtml(normalizeMediaUrl(job.imageUrl))}" alt="" loading="lazy" /></div>`
     : '';
   const loc = job.location
     ? `<p class="job-card__location muted">📍 ${escapeHtml(job.location)}</p>`
@@ -84,7 +85,7 @@ export function storeJobOpeningCardHtml(job, { slug, showForm = true, locale = '
       ? `<a href="mailto:${escapeHtml(job.applyEmail)}" class="job-card__mailto">${escapeHtml(job.applyEmail)}</a>`
       : '',
     job.applyUrl
-      ? `<a href="${escapeHtml(job.applyUrl)}" class="job-card__link" target="_blank" rel="noopener noreferrer">Link aplikimi</a>`
+      ? `<a href="${escapeHtml(normalizeExternalUrl(job.applyUrl))}" class="job-card__link" target="_blank" rel="noopener noreferrer">Link aplikimi</a>`
       : '',
   ]
     .filter(Boolean)
@@ -140,7 +141,7 @@ export function marketJobOpeningCardHtml(job, shopLinkFn, locale = 'sq') {
   const period = formatJobPeriod(job.startsAt, job.endsAt);
   const emp = employmentTypeLabel(job.employmentType, locale);
   const img = job.imageUrl
-    ? `<div class="market-job-card__media" style="background-image:url(${escapeHtml(job.imageUrl)})"></div>`
+    ? `<div class="market-job-card__media" style="background-image:${escapeHtml(cssBackgroundUrl(job.imageUrl))}"></div>`
     : '<div class="market-job-card__media market-job-card__media--placeholder" aria-hidden="true">💼</div>';
   return `
     <a class="market-job-card" href="${escapeHtml(href)}">

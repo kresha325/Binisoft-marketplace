@@ -1,3 +1,4 @@
+import { cssBackgroundUrl, normalizeExternalUrl, normalizeMediaUrl } from './externalUrl.js';
 import { resolveGoogleMapsOpenUrl } from './googleMapsUrl.js';
 import { rebuildStoreBottomNav } from './storeResponsive.js';
 import {
@@ -290,7 +291,7 @@ export function applyStoreBranding(business) {
   const logoUrl = (business?.logoUrl || '').trim();
   if (!brandLogo) return;
   if (logoUrl) {
-    brandLogo.src = logoUrl;
+    brandLogo.src = normalizeMediaUrl(logoUrl);
     brandLogo.alt = business?.name ? `${business.name} logo` : '';
     brandLogo.classList.add('brand-logo--store');
   } else {
@@ -445,7 +446,7 @@ function renderGallery(cfg) {
       cell.appendChild(iframe);
     } else if (item.imageUrl) {
       const img = document.createElement('img');
-      img.src = item.imageUrl;
+      img.src = normalizeMediaUrl(item.imageUrl);
       img.alt = item.caption || '';
       cell.appendChild(img);
     }
@@ -487,7 +488,7 @@ function renderFooter(business, siteConfig) {
   if (logoUrl) {
     const img = document.createElement('img');
     img.className = 'footer-brand__logo';
-    img.src = logoUrl;
+    img.src = normalizeMediaUrl(logoUrl);
     img.alt = `${name} logo`;
     img.loading = 'lazy';
     brandEl.appendChild(img);
@@ -542,7 +543,7 @@ function renderFooter(business, siteConfig) {
     row.setAttribute('role', 'list');
     for (const s of socials) {
       const raw = String(s.url).trim();
-      const href = raw.startsWith('http') ? raw : `https://${raw}`;
+      const href = normalizeExternalUrl(raw);
       const a = document.createElement('a');
       a.href = href;
       a.className = `footer-social footer-social--${s.platform}`;
@@ -584,13 +585,13 @@ export function applySiteConfig(business) {
     // Hero H1, tagline, eyebrow come from business profile (Settings), not siteConfig text.
 
     const coverEl = document.getElementById('hero-cover');
-    let coverUrl = business?.coverImageUrl || '';
+    let coverUrl = normalizeMediaUrl(business?.coverImageUrl || '');
     if (heroCfg?.useProfileCover === false && heroCfg?.imageUrl) {
-      coverUrl = heroCfg.imageUrl;
+      coverUrl = normalizeMediaUrl(heroCfg.imageUrl);
     }
     if (coverEl) {
       if (coverUrl) {
-        coverEl.style.backgroundImage = `url(${coverUrl})`;
+        coverEl.style.backgroundImage = cssBackgroundUrl(coverUrl) || '';
         coverEl.classList.remove('hidden');
         heroEl.classList.add('hero--with-cover');
       } else {
