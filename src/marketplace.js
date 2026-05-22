@@ -4,6 +4,7 @@ import { getShopLocale } from './locale.js';
 import { marketJobOpeningCardHtml } from './jobOpenings.js';
 import { appendLangQuery } from './locale.js';
 import { mt } from './marketplaceI18n.js';
+import { LOCALE_LABELS } from './locale.js';
 import { getMarketplaceSession } from './marketplaceSession.js';
 import { dashboardAppUrl, dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
 import { registerShopCheckout } from './shopCheckout.js';
@@ -23,38 +24,77 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+const MARKETPLACE_TAB_IDS = ['stores', 'products', 'categories', 'offers', 'contests', 'jobs'];
+
+function marketplaceTabLabel(tabId) {
+  return {
+    stores: mt('tabStores'),
+    products: mt('tabProducts'),
+    categories: mt('tabCategories'),
+    offers: mt('tabOffers'),
+    contests: mt('tabContests'),
+    jobs: mt('tabJobOpenings'),
+  }[tabId] || tabId;
+}
+
+function heroToolsHtml() {
+  const activeLang = LOCALE_LABELS[getShopLocale()] || getShopLocale().toUpperCase();
+  return `
+          <div class="marketplace-hero__tools">
+            <button type="button" class="marketplace-hero__tool-btn" data-hero-action="theme">${escapeHtml(mt('menuTheme'))}</button>
+            <button type="button" class="marketplace-hero__tool-btn" data-hero-action="lang">${escapeHtml(activeLang)}</button>
+          </div>`;
+}
+
 function heroAuthBlockHtml() {
   const { status, displayLabel, dashboardPath } = getMarketplaceSession();
+  let auth = '';
   if (status === 'signedIn' && displayLabel) {
-    return `
+    auth = `
           <p class="marketplace-hero__auth-hint">${escapeHtml(mt('heroWelcome', { name: displayLabel }))}</p>
           <div class="marketplace-hero__auth-actions">
             <a class="hero-cta marketplace-hero__auth-btn" href="${escapeHtml(dashboardAppUrl(dashboardPath))}">${escapeHtml(mt('heroDashboardCta'))}</a>
           </div>`;
-  }
-  return `
+  } else {
+    auth = `
           <p class="marketplace-hero__auth-hint">${escapeHtml(mt('heroAuthHint'))}</p>
           <div class="marketplace-hero__auth-actions">
             <a class="hero-cta marketplace-hero__auth-btn" href="${escapeHtml(dashboardRegisterUrl())}">${escapeHtml(mt('heroRegisterCta'))}</a>
             <a class="hero-cta hero-cta--secondary marketplace-hero__auth-btn" href="${escapeHtml(dashboardLoginUrl())}">${escapeHtml(mt('heroLoginCta'))}</a>
           </div>`;
+  }
+  return `${auth}${heroToolsHtml()}`;
+}
+
+/** Switch marketplace tab and re-render catalog (from burger menu, etc.). */
+export function setMarketplaceTab(tabId) {
+  if (!marketplaceData || !MARKETPLACE_TAB_IDS.includes(tabId)) return;
+  activeTab = tabId;
+  selectedCategoryKey = null;
+  const root = document.getElementById('catalog');
+  if (!root) return;
+  root.innerHTML = renderPanel();
+  bindMarketplaceEvents(root);
+  const panel = root.querySelector('.market-tabs') || root.querySelector('.market-panel');
+  panel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+export function getMarketplaceTabIds() {
+  return [...MARKETPLACE_TAB_IDS];
+}
+
+export function getActiveMarketplaceTab() {
+  return activeTab;
 }
 
 /** Update hero auth strip after Firebase session resolves (no full reload). */
 export function refreshMarketplaceHeroAuth() {
   if (!isMarketplaceMode()) return;
-  const inner = document.querySelector('.marketplace-hero__inner');
-  if (!inner) return;
-  const hint = inner.querySelector('.marketplace-hero__auth-hint');
-  const actions = inner.querySelector('.marketplace-hero__auth-actions');
-  if (!hint || !actions) return;
-  const block = heroAuthBlockHtml();
-  const wrap = document.createElement('div');
-  wrap.innerHTML = block.trim();
-  const newHint = wrap.querySelector('.marketplace-hero__auth-hint');
-  const newActions = wrap.querySelector('.marketplace-hero__auth-actions');
-  if (newHint) hint.replaceWith(newHint);
-  if (newActions) actions.replaceWith(newActions);
+  const account = document.getElementById('marketplace-hero-account');
+  if (!account) return;
+  account.innerHTML = heroAuthBlockHtml();
+  const catalog = document.getElementById('catalog');
+  if (catalog) bindMarketplaceEvents(catalog);
 }
 
 function formatEuro(n) {
@@ -156,14 +196,7 @@ function renderStats(stats) {
 }
 
 function renderTabs() {
-  const tabs = [
-    { id: 'stores', label: mt('tabStores') },
-    { id: 'products', label: mt('tabProducts') },
-    { id: 'categories', label: mt('tabCategories') },
-    { id: 'offers', label: mt('tabOffers') },
-    { id: 'contests', label: mt('tabContests') },
-    { id: 'jobs', label: mt('tabJobOpenings') },
-  ];
+  const tabs = MARKETPLACE_TAB_IDS.map((id) => ({ id, label: marketplaceTabLabel(id) }));
   return `
     <div class="market-tabs" role="tablist">
       ${tabs
@@ -467,7 +500,9 @@ function renderPanel() {
             <span class="visually-hidden">${escapeHtml(mt('searchLabel'))}</span>
             <input type="search" id="market-search-input" placeholder="${escapeHtml(mt('searchPlaceholder'))}" value="${escapeHtml(searchQuery)}" />
           </label>
-          ${heroAuthBlockHtml()}
+          <div class="marketplace-hero__account" id="marketplace-hero-account">
+            ${heroAuthBlockHtml()}
+          </div>
         </div>
       </div>
       ${renderStats(marketplaceStatsDisplay(stats, categories, offers))}
@@ -498,6 +533,13 @@ function bindMarketplaceEvents(root) {
     selectedCategoryKey = null;
     root.innerHTML = renderPanel();
     bindMarketplaceEvents(root);
+  });
+
+  root.querySelector('[data-hero-action="theme"]')?.addEventListener('click', () => {
+    document.getElementById('theme-toggle')?.click();
+  });
+  root.querySelector('[data-hero-action="lang"]')?.addEventListener('click', () => {
+    document.getElementById('lang-switcher')?.click();
   });
 
   const searchInput = root.querySelector('#market-search-input');

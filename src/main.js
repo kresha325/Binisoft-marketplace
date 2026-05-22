@@ -51,7 +51,13 @@ import {
   loadPendingOrder,
   savePendingOrder,
 } from './pendingOrder.js';
-import { loadMarketplace, isMarketplaceMode } from './marketplace.js';
+import {
+  getActiveMarketplaceTab,
+  getMarketplaceTabIds,
+  loadMarketplace,
+  isMarketplaceMode,
+  setMarketplaceTab,
+} from './marketplace.js';
 import { marketplaceLangModalTitle, mt as marketMt } from './marketplaceI18n.js';
 import { getMarketplaceSession, initMarketplaceSession, onMarketplaceSessionChange } from './marketplaceSession.js';
 import { dashboardAppUrl, dashboardLoginUrl, dashboardRegisterUrl } from './platformLinks.js';
@@ -260,6 +266,16 @@ function renderMarketplaceHeaderMenu() {
   const signedIn = status === 'signedIn' && displayLabel;
   const activeLang = LOCALE_LABELS[getShopLocale()] || getShopLocale().toUpperCase();
 
+  const activeTab = getActiveMarketplaceTab();
+  const tabLabels = {
+    stores: marketMt('tabStores'),
+    products: marketMt('tabProducts'),
+    categories: marketMt('tabCategories'),
+    offers: marketMt('tabOffers'),
+    contests: marketMt('tabContests'),
+    jobs: marketMt('tabJobOpenings'),
+  };
+
   let authBlock = '';
   if (signedIn) {
     authBlock = `
@@ -271,9 +287,25 @@ function renderMarketplaceHeaderMenu() {
       <a class="header-menu-panel__btn header-menu-panel__btn--primary" href="${escapeHtml(dashboardRegisterUrl())}">${escapeHtml(marketMt('headerRegister'))}</a>`;
   }
 
+  const browseLinks = getMarketplaceTabIds()
+    .map(
+      (id) => `
+      <button type="button" class="header-menu-panel__row header-menu-panel__row--tab${activeTab === id ? ' is-active' : ''}" data-menu-tab="${escapeHtml(id)}">
+        <span>${escapeHtml(tabLabels[id] || id)}</span>
+      </button>`,
+    )
+    .join('');
+
   siteNav.innerHTML = `
     <div class="header-menu-panel">
+      <button type="button" class="header-menu-panel__row header-menu-panel__row--home" data-menu-action="home">
+        <span>${escapeHtml(marketMt('menuHome'))}</span>
+      </button>
+      <p class="header-menu-panel__section">${escapeHtml(marketMt('menuBrowse'))}</p>
+      ${browseLinks}
+      <p class="header-menu-panel__section">${escapeHtml(marketMt('menuAccount'))}</p>
       ${authBlock}
+      <p class="header-menu-panel__section">${escapeHtml(marketMt('menuLanguage'))}</p>
       <button type="button" class="header-menu-panel__row" data-menu-action="theme">
         <span>${escapeHtml(marketMt('menuTheme'))}</span>
       </button>
@@ -283,6 +315,17 @@ function renderMarketplaceHeaderMenu() {
       </button>
     </div>`;
 
+  siteNav.querySelector('[data-menu-action="home"]')?.addEventListener('click', () => {
+    closeMobileNav();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  siteNav.querySelectorAll('[data-menu-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setMarketplaceTab(btn.getAttribute('data-menu-tab') || 'stores');
+      closeMobileNav();
+      renderMarketplaceHeaderMenu();
+    });
+  });
   siteNav.querySelector('[data-menu-action="theme"]')?.addEventListener('click', () => {
     themeToggleEl?.click();
     closeMobileNav();
@@ -2296,6 +2339,7 @@ initMarketplaceSession();
 onMarketplaceSessionChange(() => {
   syncHeaderChrome();
   refreshMarketplaceHeroAuth();
+  renderMarketplaceHeaderMenu();
 });
 initMarketplaceHeaderMenu();
 syncHeaderChrome();
