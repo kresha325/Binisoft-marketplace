@@ -2550,6 +2550,27 @@ code {
     border-top: 1px solid var(--border);
   }
 
+  /* backdrop-filter on .site-header traps position:fixed nav inside the header box */
+  .site-header {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.52);
+    cursor: pointer;
+  }
+
+  .nav-backdrop.hidden {
+    display: none;
+  }
+
   .site-nav {
     display: none;
     position: fixed;
@@ -2563,13 +2584,29 @@ code {
     padding: 16px 20px 32px;
     background: var(--navy);
     border-top: 1px solid var(--border);
-    z-index: 40;
+    z-index: 110;
     gap: 4px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body[data-mode='store'] .site-nav {
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 24px;
+  }
+
+  body.nav-open .site-header {
+    z-index: 111;
   }
 
   body.nav-open .site-nav {
     display: flex;
+  }
+
+  body.nav-open .scroll-to-top {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .nav-link {

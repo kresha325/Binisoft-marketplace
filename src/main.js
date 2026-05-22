@@ -686,15 +686,51 @@ function setShopView(view, options = {}) {
   if (key === 'services' && services.length) renderServices();
 }
 
+let navBackdropEl = null;
+
+function ensureNavBackdrop() {
+  if (navBackdropEl) return navBackdropEl;
+  navBackdropEl = document.createElement('button');
+  navBackdropEl.type = 'button';
+  navBackdropEl.id = 'nav-backdrop';
+  navBackdropEl.className = 'nav-backdrop hidden';
+  navBackdropEl.setAttribute('aria-label', 'Mbyll menunë');
+  navBackdropEl.addEventListener('click', closeMobileNav);
+  document.body.appendChild(navBackdropEl);
+  return navBackdropEl;
+}
+
+/** Fixed nav must not sit under header backdrop-filter; portal to body on small screens. */
+function syncMobileNavHost() {
+  if (!siteNav) return;
+  const headerInner = document.querySelector('.header-inner');
+  const headerActions = document.querySelector('.header-actions');
+  const usePortal = window.matchMedia('(max-width: 900px)').matches;
+  if (usePortal) {
+    ensureNavBackdrop();
+    if (siteNav.parentElement !== document.body) {
+      document.body.appendChild(siteNav);
+    }
+    return;
+  }
+  navBackdropEl?.classList.add('hidden');
+  if (headerInner && headerActions && siteNav.parentElement === document.body) {
+    headerInner.insertBefore(siteNav, headerActions);
+  }
+}
+
 function closeMobileNav() {
   document.body.classList.remove('nav-open');
   navToggle?.setAttribute('aria-expanded', 'false');
+  navBackdropEl?.classList.add('hidden');
   storeBottomNav?.querySelector('[data-bottom-nav="menu"]')?.classList.remove('is-active');
 }
 
 function openMobileNav() {
+  syncMobileNavHost();
   document.body.classList.add('nav-open');
   navToggle?.setAttribute('aria-expanded', 'true');
+  ensureNavBackdrop()?.classList.remove('hidden');
   storeBottomNav?.querySelector('[data-bottom-nav="menu"]')?.classList.add('is-active');
 }
 
@@ -753,8 +789,11 @@ function initSiteNav() {
   setShopView(parseShopViewFromHash());
 
   window.addEventListener('resize', () => {
+    syncMobileNavHost();
     if (window.matchMedia('(min-width: 901px)').matches) closeMobileNav();
   });
+
+  syncMobileNavHost();
 }
 
 function updateCartBadge(count) {
