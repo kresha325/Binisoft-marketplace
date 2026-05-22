@@ -210,18 +210,20 @@ function syncHeaderChrome() {
   const { status, displayLabel, dashboardPath } = getMarketplaceSession();
   const signedIn = status === 'signedIn' && displayLabel;
 
+  const marketMobile = isMarket && MARKETPLACE_MOBILE_MQ.matches;
+
   if (headerLoginEl) {
     headerLoginEl.href = dashboardLoginUrl();
     headerLoginEl.textContent = marketMt('headerLogin');
-    headerLoginEl.classList.toggle('hidden', !isMarket || signedIn);
+    headerLoginEl.classList.toggle('hidden', !isMarket || signedIn || marketMobile);
   }
   if (headerRegisterEl) {
     headerRegisterEl.href = dashboardRegisterUrl();
     headerRegisterEl.textContent = marketMt('headerRegister');
-    headerRegisterEl.classList.toggle('hidden', !isMarket || signedIn);
+    headerRegisterEl.classList.toggle('hidden', !isMarket || signedIn || marketMobile);
   }
   if (headerUserEl && headerUserNameEl && headerUserDashboardEl) {
-    const showUser = signedIn;
+    const showUser = signedIn && !(isMarket && marketMobile);
     headerUserEl.classList.toggle('hidden', !showUser);
     headerUserEl.hidden = !showUser;
     if (showUser) {
@@ -236,6 +238,76 @@ function syncHeaderChrome() {
     exitToMarketplaceBtn.classList.toggle('hidden', isMarket);
     exitToMarketplaceBtn.setAttribute('aria-label', marketMt('exitToMarketplace'));
   }
+
+  if (isMarket) renderMarketplaceHeaderMenu();
+}
+
+const MARKETPLACE_MOBILE_MQ = window.matchMedia('(max-width: 900px)');
+
+function renderMarketplaceHeaderMenu() {
+  if (!siteNav || document.body.dataset.mode !== 'marketplace') return;
+
+  const useDrawer = MARKETPLACE_MOBILE_MQ.matches;
+  navToggle?.classList.toggle('hidden', !useDrawer);
+  siteNav.classList.toggle('hidden', !useDrawer);
+
+  if (!useDrawer) {
+    siteNav.innerHTML = '';
+    return;
+  }
+
+  const { status, displayLabel, dashboardPath } = getMarketplaceSession();
+  const signedIn = status === 'signedIn' && displayLabel;
+  const activeLang = LOCALE_LABELS[getShopLocale()] || getShopLocale().toUpperCase();
+
+  let authBlock = '';
+  if (signedIn) {
+    authBlock = `
+      <p class="header-menu-panel__greeting">${escapeHtml(marketMt('headerWelcome', { name: displayLabel }))}</p>
+      <a class="header-menu-panel__btn header-menu-panel__btn--primary" href="${escapeHtml(dashboardAppUrl(dashboardPath))}">${escapeHtml(marketMt('headerDashboard'))}</a>`;
+  } else {
+    authBlock = `
+      <a class="header-menu-panel__btn" href="${escapeHtml(dashboardLoginUrl())}">${escapeHtml(marketMt('headerLogin'))}</a>
+      <a class="header-menu-panel__btn header-menu-panel__btn--primary" href="${escapeHtml(dashboardRegisterUrl())}">${escapeHtml(marketMt('headerRegister'))}</a>`;
+  }
+
+  siteNav.innerHTML = `
+    <div class="header-menu-panel">
+      ${authBlock}
+      <button type="button" class="header-menu-panel__row" data-menu-action="theme">
+        <span>${escapeHtml(marketMt('menuTheme'))}</span>
+      </button>
+      <button type="button" class="header-menu-panel__row" data-menu-action="lang">
+        <span>${escapeHtml(marketMt('menuLanguage'))}</span>
+        <span class="header-menu-panel__meta">${escapeHtml(activeLang)}</span>
+      </button>
+    </div>`;
+
+  siteNav.querySelector('[data-menu-action="theme"]')?.addEventListener('click', () => {
+    themeToggleEl?.click();
+    closeMobileNav();
+  });
+  siteNav.querySelector('[data-menu-action="lang"]')?.addEventListener('click', () => {
+    langSwitcherEl?.click();
+    closeMobileNav();
+  });
+  siteNav.querySelectorAll('.header-menu-panel__btn').forEach((link) => {
+    link.addEventListener('click', () => closeMobileNav());
+  });
+}
+
+let marketplaceHeaderMenuMqBound = false;
+
+function initMarketplaceHeaderMenu() {
+  if (marketplaceHeaderMenuMqBound) return;
+  marketplaceHeaderMenuMqBound = true;
+  MARKETPLACE_MOBILE_MQ.addEventListener('change', () => {
+    if (document.body.dataset.mode === 'marketplace') {
+      closeMobileNav();
+      renderMarketplaceHeaderMenu();
+      syncHeaderChrome();
+    }
+  });
 }
 
 function initExitToMarketplace() {
@@ -1752,8 +1824,6 @@ function applyMarketplaceLayout() {
   });
   document.querySelector('.catalog-head')?.classList.add('hidden');
   document.getElementById('shop-products')?.classList.add('marketplace-catalog-section');
-  siteNav?.classList.add('hidden');
-  navToggle?.classList.add('hidden');
   heroTrust?.classList.add('hidden');
   storeBottomNav?.classList.add('hidden');
   setCatalogMeta({
@@ -1769,6 +1839,7 @@ function applyMarketplaceLayout() {
   refreshShopCheckoutUi();
   renderLangSwitcher();
   syncHeaderChrome();
+  renderMarketplaceHeaderMenu();
 }
 
 function applyStoreLayoutShell() {
@@ -1798,6 +1869,7 @@ async function renderMarketplaceHome() {
 
   renderLangSwitcher();
   initThemeToggle();
+  renderMarketplaceHeaderMenu();
 }
 
 function showOrderKeyHint() {
@@ -2225,12 +2297,14 @@ onMarketplaceSessionChange(() => {
   syncHeaderChrome();
   refreshMarketplaceHeroAuth();
 });
+initMarketplaceHeaderMenu();
 syncHeaderChrome();
 
 $('#cart-toggle').addEventListener('click', openCart);
 $('#cart-close').addEventListener('click', closeCart);
 cartBackdrop?.addEventListener('click', closeCart);
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.body.classList.contains('nav-open')) closeMobileNav();
   if (e.key === 'Escape' && !cartPanel.classList.contains('hidden')) closeCart();
 });
 orderNotes.addEventListener('input', updateOrderPreview);
