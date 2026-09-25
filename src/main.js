@@ -1172,7 +1172,10 @@ async function cancelPendingOrder() {
     const res = await fetch(cancelOrderUrl(pending.orderId, slug), {
       method: 'POST',
       headers: orderHeaders(),
-      body: JSON.stringify({ phone: pending.phone }),
+      body: JSON.stringify({
+        phone: pending.phone,
+        accessToken: pending.accessToken || undefined,
+      }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -1219,7 +1222,9 @@ async function pollOrderStatus() {
 
   try {
     const slug = pending.businessSlug || getSlug();
-    const url = `${orderUrl(pending.orderId, slug)}?phone=${encodeURIComponent(pending.phone)}`;
+    const params = new URLSearchParams({ phone: pending.phone || '' });
+    if (pending.accessToken) params.set('accessToken', pending.accessToken);
+    const url = `${orderUrl(pending.orderId, slug)}?${params.toString()}`;
     const res = await fetch(url, { headers: orderHeaders() });
 
     if (res.status === 404) {
@@ -2350,6 +2355,7 @@ async function sendOrder(channel) {
         savePendingOrder({
           orderId: o.orderId,
           orderNumber: o.orderNumber,
+          accessToken: o.customerAccessToken || '',
           phone: customer.phone || '',
           name: customer.name,
           address,
