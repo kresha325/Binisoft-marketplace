@@ -4380,11 +4380,24 @@ body.store-pro .hero--with-cover .hero-cover-grain {
 body.store-pro .hero--with-cover .hero-inner {
   position: relative;
   z-index: 2;
+  width: 100%;
+  margin-inline: auto;
   color: #fff;
   text-shadow: none;
-  padding: clamp(72px, 12vh, 120px) 20px 48px;
-  grid-template-columns: 1fr;
-  max-width: var(--max);
+  text-align: left;
+  padding: clamp(48px, 8vh, 88px) 22px 52px;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  align-items: end;
+}
+
+body.store-pro .hero--with-cover .hero-copy {
+  width: 100%;
+  max-width: 40rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 body.store-pro .hero--with-cover .hero-eyebrow {
@@ -4394,6 +4407,7 @@ body.store-pro .hero--with-cover .hero-eyebrow {
   text-transform: uppercase;
   font-size: 0.78rem;
   font-weight: 700;
+  text-align: left;
 }
 
 body.store-pro .hero--with-cover .hero-title {
@@ -4402,11 +4416,14 @@ body.store-pro .hero--with-cover .hero-title {
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 0.95;
+  text-align: left;
   background: linear-gradient(120deg, #fff 10%, #ffe9a8 55%, var(--yellow) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   max-width: 14ch;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 body.store-pro .hero--with-cover .hero-tagline,
@@ -4416,6 +4433,15 @@ body.store-pro .hero--with-cover .hero-trust li {
   max-width: 36rem;
   font-size: 1.05rem;
   line-height: 1.55;
+  text-align: left;
+}
+
+body.store-pro .hero--with-cover .hero-actions,
+body.store-pro .hero--with-cover .hero-trust,
+body.store-pro .hero--with-cover .hero-stats {
+  justify-content: flex-start;
+  align-self: flex-start;
+  width: 100%;
 }
 
 body.store-pro .hero--with-cover .hero-cta {
@@ -4448,11 +4474,22 @@ body.store-pro .hero:not(.hero--with-cover) {
     linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 55%, var(--navy-light) 100%);
   min-height: min(58vh, 440px);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
 }
 
 body.store-pro .hero:not(.hero--with-cover) .hero-inner {
   color: #fff;
+  width: 100%;
+  text-align: left;
+  justify-items: start;
+  align-items: end;
+}
+
+body.store-pro .hero:not(.hero--with-cover) .hero-copy {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 body.store-pro .hero:not(.hero--with-cover) .hero-title {
