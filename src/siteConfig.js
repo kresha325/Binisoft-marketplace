@@ -149,7 +149,8 @@ function sectionMap(siteConfig) {
     map.set('jobOpenings', { id: 'jobOpenings', enabled: true, title: 'Konkurse pune' });
   }
   if (!map.has('employees')) {
-    map.set('employees', { id: 'employees', enabled: true, title: 'Ekipi' });
+    // Prefer hidden when API omits the section (legacy); enabled businesses send it explicitly.
+    map.set('employees', { id: 'employees', enabled: false, title: 'Ekipi' });
   }
   return map;
 }
