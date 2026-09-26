@@ -718,10 +718,11 @@ function syncMobileNavHost() {
   if (!siteNav) return;
   const headerInner = document.querySelector('.header-inner');
   const headerActions = document.querySelector('.header-actions');
+  const storeBurgerDesktop =
+    document.body.dataset.mode === 'store' &&
+    document.body.classList.contains('store-nav-burger');
   const usePortal =
-    window.matchMedia('(max-width: 900px)').matches ||
-    (document.body.dataset.mode === 'store' &&
-      document.body.classList.contains('store-nav-burger'));
+    window.matchMedia('(max-width: 900px)').matches || storeBurgerDesktop;
   if (usePortal) {
     ensureNavBackdrop();
     if (siteNav.parentElement !== document.body) {
@@ -729,7 +730,9 @@ function syncMobileNavHost() {
     }
     return;
   }
-  navBackdropEl?.classList.add('hidden');
+  if (!document.body.classList.contains('nav-open')) {
+    navBackdropEl?.classList.add('hidden');
+  }
   if (headerInner && headerActions && siteNav.parentElement === document.body) {
     headerInner.insertBefore(siteNav, headerActions);
   }
@@ -746,7 +749,15 @@ function openMobileNav() {
   syncMobileNavHost();
   document.body.classList.add('nav-open');
   navToggle?.setAttribute('aria-expanded', 'true');
-  ensureNavBackdrop()?.classList.remove('hidden');
+  const backdrop = ensureNavBackdrop();
+  backdrop?.classList.remove('hidden');
+  // Desktop store burger: keep backdrop visible (syncMobileNavHost used to hide it on wide screens).
+  if (
+    document.body.dataset.mode === 'store' &&
+    document.body.classList.contains('store-nav-burger')
+  ) {
+    backdrop?.classList.remove('hidden');
+  }
   storeBottomNav?.querySelector('[data-bottom-nav="menu"]')?.classList.add('is-active');
 }
 
@@ -2215,6 +2226,7 @@ async function loadShop() {
   applyShopSeo(business);
   const routing = applySiteConfig(business);
   refreshStoreDrawer();
+  syncMobileNavHost();
   renderContactCards(business);
   storeBusinessProfile = business;
   registerShopCheckout(business);
