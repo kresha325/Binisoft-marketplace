@@ -1,8 +1,8 @@
 name: Notify unified Pages
 
 # After marketplace main changes, ask binisoft-ad to rebuild /binisoft-ad/shop.
-# Requires repo secret PAGES_DISPATCH_TOKEN (PAT with repo + workflow on binisoft-ad).
-# Without the secret this job is skipped; binisoft-ad still rebuilds hourly from schedule.
+# Optional secret PAGES_DISPATCH_TOKEN (PAT with repo + workflow on binisoft-ad).
+# Without it, the job no-ops; binisoft-ad still rebuilds hourly from schedule.
 
 on:
   push:
@@ -12,16 +12,21 @@ on:
 jobs:
   dispatch:
     runs-on: ubuntu-latest
-    if: ${{ secrets.PAGES_DISPATCH_TOKEN != '' }}
     steps:
       - name: repository_dispatch → binisoft-ad
         env:
           TOKEN: ${{ secrets.PAGES_DISPATCH_TOKEN }}
+          SHA: ${{ github.sha }}
         run: |
+          if [ -z "$TOKEN" ]; then
+            echo "No PAGES_DISPATCH_TOKEN set — skipping dispatch."
+            echo "binisoft-ad Pages will pick up marketplace main on its hourly schedule (or CI push)."
+            exit 0
+          fi
           curl -fsS -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $TOKEN" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/kresha325/binisoft-ad/dispatches \
-            -d '{"event_type":"marketplace-updated","client_payload":{"sha":"'"${GITHUB_SHA}"'"}}'
-          echo "Dispatched marketplace-updated to binisoft-ad"
+            -d "{\"event_type\":\"marketplace-updated\",\"client_payload\":{\"sha\":\"$SHA\"}}"
+          echo "Dispatched marketplace-updated to binisoft-ad ($SHA)"
