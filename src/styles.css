@@ -3707,14 +3707,16 @@ body.marketplace-theme--dark .market-search--hero .market-search__icon {
   color: inherit;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 18px;
   overflow: hidden;
-  transition: border-color 0.15s, transform 0.15s;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.2s ease;
 }
 
 .market-product-card:hover {
-  border-color: var(--yellow);
-  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--yellow) 55%, var(--border));
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-elevated);
 }
 
 .market-product-card__img {
