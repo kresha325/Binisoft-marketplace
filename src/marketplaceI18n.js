@@ -3,10 +3,10 @@ import { getShopLocale } from './locale.js';
 const STRINGS = {
   sq: {
     brandName: 'Marketplace',
-    heroEyebrow: 'Binisoft Marketplace',
-    heroTitle: 'Zbulo dyqanet & blerje online',
+    heroEyebrow: 'Binisoft',
+    heroTitle: 'Marketplace',
     heroSub:
-      'Të gjitha bizneset nga platforma — profilet krijohen nga admin dashboard dhe sinkronizohen automatikisht.',
+      'Dyqane, produkte dhe oferta nga platforma — zbuloni dhe blini në një vend.',
     searchLabel: 'Kërko',
     searchPlaceholder: 'Kërko dyqan, produkt, kategori…',
     statStores: 'Dyqane',
@@ -68,10 +68,10 @@ const STRINGS = {
   },
   en: {
     brandName: 'Marketplace',
-    heroEyebrow: 'Binisoft Marketplace',
-    heroTitle: 'Discover shops & shop online',
+    heroEyebrow: 'Binisoft',
+    heroTitle: 'Marketplace',
     heroSub:
-      'All businesses on the platform — profiles are created in the admin dashboard and sync automatically.',
+      'Shops, products and offers from the platform — discover and buy in one place.',
     searchLabel: 'Search',
     searchPlaceholder: 'Search shop, product, category…',
     statStores: 'Shops',
@@ -132,10 +132,10 @@ const STRINGS = {
   },
   de: {
     brandName: 'Marketplace',
-    heroEyebrow: 'Binisoft Marketplace',
-    heroTitle: 'Shops entdecken & online einkaufen',
+    heroEyebrow: 'Binisoft',
+    heroTitle: 'Marketplace',
     heroSub:
-      'Alle Unternehmen der Plattform — Profile werden im Admin-Dashboard erstellt und automatisch synchronisiert.',
+      'Shops, Produkte und Angebote der Plattform — entdecken und kaufen an einem Ort.',
     searchLabel: 'Suchen',
     searchPlaceholder: 'Shop, Produkt, Kategorie suchen…',
     statStores: 'Shops',

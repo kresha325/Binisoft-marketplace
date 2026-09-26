@@ -142,14 +142,25 @@ function marketplaceStatsDisplay(stats, categories, offers = []) {
 function renderStats(stats) {
   const offerProducts = stats.offerProductCount ?? stats.offerCount ?? 0;
   const contestCount = stats.contestCount ?? 0;
+  const items = [
+    [stats.businessCount, mt('statStores')],
+    [stats.productCount, mt('statProducts')],
+    [stats.categoryCount, mt('statCategories')],
+    [offerProducts, mt('statOfferProducts')],
+    [contestCount, mt('statContests')],
+    [stats.jobOpeningCount ?? 0, mt('statJobOpenings')],
+  ];
   return `
-    <div class="market-stats">
-      <div class="market-stat"><span class="market-stat__value">${stats.businessCount}</span><span class="market-stat__label">${escapeHtml(mt('statStores'))}</span></div>
-      <div class="market-stat"><span class="market-stat__value">${stats.productCount}</span><span class="market-stat__label">${escapeHtml(mt('statProducts'))}</span></div>
-      <div class="market-stat"><span class="market-stat__value">${stats.categoryCount}</span><span class="market-stat__label">${escapeHtml(mt('statCategories'))}</span></div>
-      <div class="market-stat"><span class="market-stat__value">${offerProducts}</span><span class="market-stat__label">${escapeHtml(mt('statOfferProducts'))}</span></div>
-      <div class="market-stat"><span class="market-stat__value">${contestCount}</span><span class="market-stat__label">${escapeHtml(mt('statContests'))}</span></div>
-      <div class="market-stat"><span class="market-stat__value">${stats.jobOpeningCount ?? 0}</span><span class="market-stat__label">${escapeHtml(mt('statJobOpenings'))}</span></div>
+    <div class="market-stats" role="group" aria-label="Stats">
+      ${items
+        .map(
+          ([value, label]) => `
+        <div class="market-stat">
+          <span class="market-stat__value">${value}</span>
+          <span class="market-stat__label">${escapeHtml(label)}</span>
+        </div>`,
+        )
+        .join('')}
     </div>`;
 }
 
@@ -183,7 +194,7 @@ function storeLogoHtml(b) {
   if (logo) {
     return `<img src="${escapeHtml(logo)}" alt="" class="market-store-card__logo" loading="lazy" decoding="async" />`;
   }
-  return '<div class="market-store-card__logo market-store-card__logo--placeholder" aria-hidden="true">🛒</div>';
+  return '<div class="market-store-card__logo market-store-card__logo--placeholder" aria-hidden="true"></div>';
 }
 
 function renderStores(businesses) {
@@ -446,24 +457,34 @@ function renderPanel() {
 
   return `
     <div class="marketplace">
-      <div class="marketplace-hero marketplace-hero--photo">
+      <section class="marketplace-hero marketplace-hero--cinema" aria-label="Marketplace">
         <div
           class="marketplace-hero__cover"
           style="background-image:url('${MARKETPLACE_HERO_BG}')"
           aria-hidden="true"
         ></div>
+        <div class="marketplace-hero__veil" aria-hidden="true"></div>
+        <div class="marketplace-hero__grain" aria-hidden="true"></div>
         <div class="marketplace-hero__inner">
-          <p class="marketplace-hero__eyebrow">${escapeHtml(mt('heroEyebrow'))}</p>
+          <p class="marketplace-hero__brand">${escapeHtml(mt('heroEyebrow'))}</p>
           <h1 class="marketplace-hero__title">${escapeHtml(mt('heroTitle'))}</h1>
           <p class="marketplace-hero__sub">${escapeHtml(mt('heroSub'))}</p>
           <label class="market-search market-search--hero">
             <span class="visually-hidden">${escapeHtml(mt('searchLabel'))}</span>
-            <input type="search" id="market-search-input" placeholder="${escapeHtml(mt('searchPlaceholder'))}" value="${escapeHtml(searchQuery)}" />
+            <span class="market-search__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input type="search" id="market-search-input" placeholder="${escapeHtml(mt('searchPlaceholder'))}" value="${escapeHtml(searchQuery)}" autocomplete="off" />
           </label>
         </div>
+      </section>
+      <div class="market-chrome">
+        ${renderStats(marketplaceStatsDisplay(stats, categories, offers))}
+        ${renderTabs()}
       </div>
-      ${renderStats(marketplaceStatsDisplay(stats, categories, offers))}
-      ${renderTabs()}
       <div class="market-panel" role="tabpanel">${panel}</div>
     </div>`;
 }
