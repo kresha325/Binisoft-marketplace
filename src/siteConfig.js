@@ -217,10 +217,20 @@ function rebuildNav(siteConfig, siteNav) {
   }
 }
 
+/** More than 4 header links → burger drawer (desktop + mobile). */
+export const STORE_NAV_INLINE_MAX = 4;
+
+export function storeNavNeedsBurger(siteConfig) {
+  return buildNavLinks(siteConfig).length > STORE_NAV_INLINE_MAX;
+}
+
 /** Rebuild header + mobile bottom nav from siteConfig. */
 export function rebuildSiteNavigation(siteConfig) {
   rebuildNav(siteConfig, document.getElementById('site-nav'));
   rebuildStoreBottomNav(siteConfig, document.getElementById('store-bottom-nav'));
+  const useBurger =
+    document.body.dataset.mode === 'store' && storeNavNeedsBurger(siteConfig);
+  document.body.classList.toggle('store-nav-burger', useBurger);
 }
 
 function youtubeEmbedUrl(url) {

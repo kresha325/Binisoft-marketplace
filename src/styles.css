@@ -2546,6 +2546,69 @@ code {
   body.nav-open {
     overflow: auto;
   }
+
+  /* Store with >4 links: keep burger + drawer on desktop */
+  body[data-mode='store'].store-nav-burger .nav-toggle {
+    display: flex !important;
+  }
+
+  body[data-mode='store'].store-nav-burger .site-nav {
+    display: none !important;
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 16px 20px 32px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 110;
+    gap: 4px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    inset: auto;
+    transform: none;
+  }
+
+  body[data-mode='store'].store-nav-burger.nav-open .site-nav {
+    display: flex !important;
+  }
+
+  body[data-mode='store'].store-nav-burger.nav-open {
+    overflow: hidden;
+  }
+
+  body[data-mode='store'].store-nav-burger .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.52);
+    cursor: pointer;
+  }
+
+  body[data-mode='store'].store-nav-burger .nav-backdrop.hidden {
+    display: none;
+  }
+
+  body[data-mode='store'].store-nav-burger.nav-open .site-header {
+    z-index: 111;
+  }
+
+  body[data-mode='store'].store-nav-burger .site-nav .nav-link {
+    font-size: 1rem;
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 4px;
+    width: 100%;
+    text-align: left;
+  }
 }
 
 /* ── Mobile: vetëm burger, menu si drawer ── */

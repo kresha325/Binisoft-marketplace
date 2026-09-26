@@ -259,26 +259,33 @@ function syncHeaderChrome() {
 
 function refreshStoreDrawer() {
   if (document.body.dataset.mode !== 'store' || !siteNav) return;
-  if (!MARKETPLACE_MOBILE_MQ.matches) {
+  const useBurger =
+    document.body.classList.contains('store-nav-burger') || MARKETPLACE_MOBILE_MQ.matches;
+  if (!useBurger) {
     siteNav.querySelector('.store-drawer-extras')?.remove();
     navToggle?.classList.add('hidden');
     return;
   }
   navToggle?.classList.remove('hidden');
-  appendStoreDrawerExtras(siteNav, {
-    onTheme: () => {
-      themeToggleEl?.click();
-      closeMobileNav();
-    },
-    onLang: () => {
-      langSwitcherEl?.click();
-      closeMobileNav();
-    },
-    onMarketplace: () => {
-      window.location.href = marketplaceHomePath();
-    },
-    onClose: closeMobileNav,
-  });
+  // Theme / lang / marketplace stay in header on desktop burger; extras only on narrow screens.
+  if (MARKETPLACE_MOBILE_MQ.matches) {
+    appendStoreDrawerExtras(siteNav, {
+      onTheme: () => {
+        themeToggleEl?.click();
+        closeMobileNav();
+      },
+      onLang: () => {
+        langSwitcherEl?.click();
+        closeMobileNav();
+      },
+      onMarketplace: () => {
+        window.location.href = marketplaceHomePath();
+      },
+      onClose: closeMobileNav,
+    });
+  } else {
+    siteNav.querySelector('.store-drawer-extras')?.remove();
+  }
 }
 
 const MARKETPLACE_MOBILE_MQ = window.matchMedia('(max-width: 900px)');
@@ -706,12 +713,15 @@ function ensureNavBackdrop() {
   return navBackdropEl;
 }
 
-/** Fixed nav must not sit under header backdrop-filter; portal to body on small screens. */
+/** Fixed nav must not sit under header backdrop-filter; portal to body in drawer mode. */
 function syncMobileNavHost() {
   if (!siteNav) return;
   const headerInner = document.querySelector('.header-inner');
   const headerActions = document.querySelector('.header-actions');
-  const usePortal = window.matchMedia('(max-width: 900px)').matches;
+  const usePortal =
+    window.matchMedia('(max-width: 900px)').matches ||
+    (document.body.dataset.mode === 'store' &&
+      document.body.classList.contains('store-nav-burger'));
   if (usePortal) {
     ensureNavBackdrop();
     if (siteNav.parentElement !== document.body) {
@@ -796,7 +806,12 @@ function initSiteNav() {
 
   window.addEventListener('resize', () => {
     syncMobileNavHost();
-    if (window.matchMedia('(min-width: 901px)').matches) closeMobileNav();
+    if (document.body.dataset.mode === 'store') refreshStoreDrawer();
+    else if (document.body.dataset.mode === 'marketplace') renderMarketplaceHeaderMenu();
+    const keepDrawer =
+      window.matchMedia('(max-width: 900px)').matches ||
+      document.body.classList.contains('store-nav-burger');
+    if (!keepDrawer) closeMobileNav();
   });
 
   syncMobileNavHost();
@@ -1967,7 +1982,7 @@ const MARKETPLACE_ONLY_HIDDEN = [
 function applyMarketplaceLayout() {
   document.body.dataset.mode = 'marketplace';
   document.body.dataset.shopView = 'marketplace';
-  document.body.classList.remove('shop-cart-disabled');
+  document.body.classList.remove('shop-cart-disabled', 'store-nav-burger');
   MARKETPLACE_ONLY_HIDDEN.forEach((sel) => {
     document.querySelector(sel)?.classList.add('hidden');
   });
