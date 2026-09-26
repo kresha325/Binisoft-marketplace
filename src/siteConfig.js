@@ -601,10 +601,10 @@ export function applySiteConfig(business) {
       if (coverUrl) {
         coverEl.style.backgroundImage = cssBackgroundUrl(coverUrl) || '';
         coverEl.classList.remove('hidden');
-        heroEl.classList.add('hero--with-cover');
+        heroEl.classList.add('hero--with-cover', 'hero--cinema');
       } else {
         coverEl.classList.add('hidden');
-        heroEl.classList.remove('hero--with-cover');
+        heroEl.classList.remove('hero--with-cover', 'hero--cinema');
       }
     }
   }
