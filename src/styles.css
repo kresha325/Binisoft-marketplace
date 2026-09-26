@@ -2981,9 +2981,12 @@ body.layout-wide .gallery-site-grid {
   display: none;
 }
 
-/* ── Global marketplace (/) ── */
+/* ── Global marketplace (/) — hide store-only chrome ── */
 body[data-mode='marketplace'] #hero,
 body[data-mode='marketplace'] #offers,
+body[data-mode='marketplace'] #contests,
+body[data-mode='marketplace'] #employees,
+body[data-mode='marketplace'] #job-openings,
 body[data-mode='marketplace'] #shop-services,
 body[data-mode='marketplace'] #about,
 body[data-mode='marketplace'] #gallery,
@@ -3308,13 +3311,20 @@ body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__brand {
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--muted);
+  color: #5b6577;
   display: flex;
   pointer-events: none;
+  z-index: 1;
 }
 
 .market-search--hero .market-search__icon {
-  color: rgba(12, 18, 32, 0.45);
+  color: #3d4654;
+}
+
+.market-search--hero .market-search__icon svg {
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 
 .market-search--hero input {
@@ -3322,7 +3332,7 @@ body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__brand {
   color: #0c1220;
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
-  padding-left: 46px;
+  padding-left: 48px;
   border-radius: 999px;
   height: 52px;
   font-size: 0.98rem;
@@ -3342,7 +3352,7 @@ body.marketplace-theme--dark .market-search--hero input {
 }
 
 body.marketplace-theme--dark .market-search--hero .market-search__icon {
-  color: var(--muted);
+  color: #c5ced9;
 }
 
 .market-search input {

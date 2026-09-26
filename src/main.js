@@ -1956,6 +1956,7 @@ const MARKETPLACE_ONLY_HIDDEN = [
   '#hero',
   '#offers',
   '#contests',
+  '#employees',
   '#job-openings',
   '#shop-services',
   '#about',
