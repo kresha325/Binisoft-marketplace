@@ -10,6 +10,8 @@ const RESERVED_SEGMENTS = new Set([
   'src',
   'api',
   'public',
+  'admin',
+  'shop',
   'marketplace',
   'businesses',
   'index.html',
