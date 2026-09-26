@@ -590,11 +590,11 @@ function updateShopPresentation(business) {
     if (coverUrl) {
       coverEl.style.backgroundImage = cssBackgroundUrl(coverUrl);
       coverEl.classList.remove('hidden');
-      heroSection.classList.add('hero--with-cover');
+      heroSection.classList.add('hero--with-cover', 'hero--cinema');
     } else {
       coverEl.classList.add('hidden');
       coverEl.style.backgroundImage = '';
-      heroSection.classList.remove('hero--with-cover');
+      heroSection.classList.remove('hero--with-cover', 'hero--cinema');
     }
   }
 

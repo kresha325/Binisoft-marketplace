@@ -1,50 +1,53 @@
 import { SCHEME_DARK, SCHEME_LIGHT } from './storeThemeMode.js';
 
 /**
- * Light “pro” storefront theme (mockup-style). Uses business siteConfig accent when set.
+ * Premium storefront theme. Uses business siteConfig accent when set.
  */
 function resolveAccent(business) {
   const theme = business?.siteConfig?.theme || {};
-  return theme.accent && /^#[0-9a-fA-F]{3,8}$/.test(theme.accent) ? theme.accent : '#ff6b35';
+  return theme.accent && /^#[0-9a-fA-F]{3,8}$/.test(theme.accent) ? theme.accent : '#f5c518';
 }
 
 function applyProTokens(root, accent, scheme) {
+  root.style.setProperty('--store-accent', accent);
+  root.style.setProperty('--store-glow', `color-mix(in srgb, ${accent} 42%, transparent)`);
+
   if (scheme === SCHEME_DARK) {
-    root.style.setProperty('--navy', '#0c0a09');
-    root.style.setProperty('--navy-mid', '#1c1917');
-    root.style.setProperty('--navy-light', '#292524');
+    root.style.setProperty('--navy', '#070b14');
+    root.style.setProperty('--navy-mid', '#0f1729');
+    root.style.setProperty('--navy-light', '#1a2744');
     root.style.setProperty('--yellow', accent);
     root.style.setProperty('--yellow-hover', accent);
-    root.style.setProperty('--yellow-text', '#ffffff');
-    root.style.setProperty('--surface', '#1c1917');
-    root.style.setProperty('--text', '#fafaf9');
-    root.style.setProperty('--muted', '#a8a29e');
+    root.style.setProperty('--yellow-text', '#0a1628');
+    root.style.setProperty('--surface', '#121a2b');
+    root.style.setProperty('--text', '#f4f7fb');
+    root.style.setProperty('--muted', '#94a3b8');
     root.style.setProperty('--border', 'rgba(255, 255, 255, 0.1)');
-    root.style.setProperty('--header-bg', 'rgba(12, 10, 9, 0.94)');
-    root.style.setProperty('--store-page-bg', '#0c0a09');
-    root.style.setProperty('--store-card-bg', '#1c1917');
-    root.style.setProperty('--store-elevated-shadow', '0 2px 16px rgba(0, 0, 0, 0.35)');
-    root.style.setProperty('--store-hover-shadow', '0 12px 32px rgba(0, 0, 0, 0.45)');
-    root.style.setProperty('--store-header-shadow', '0 1px 0 var(--border), 0 4px 24px rgba(0, 0, 0, 0.4)');
+    root.style.setProperty('--header-bg', 'rgba(7, 11, 20, 0.88)');
+    root.style.setProperty('--store-page-bg', '#070b14');
+    root.style.setProperty('--store-card-bg', '#121a2b');
+    root.style.setProperty('--store-elevated-shadow', '0 8px 28px rgba(0, 0, 0, 0.4)');
+    root.style.setProperty('--store-hover-shadow', '0 18px 44px rgba(0, 0, 0, 0.5)');
+    root.style.setProperty('--store-header-shadow', '0 1px 0 var(--border), 0 8px 28px rgba(0, 0, 0, 0.35)');
     return;
   }
 
-  root.style.setProperty('--navy', '#1c1917');
-  root.style.setProperty('--navy-mid', '#292524');
-  root.style.setProperty('--navy-light', '#44403c');
+  root.style.setProperty('--navy', '#0a1628');
+  root.style.setProperty('--navy-mid', '#0f2240');
+  root.style.setProperty('--navy-light', '#152a4a');
   root.style.setProperty('--yellow', accent);
   root.style.setProperty('--yellow-hover', accent);
-  root.style.setProperty('--yellow-text', '#ffffff');
+  root.style.setProperty('--yellow-text', '#0a1628');
   root.style.setProperty('--surface', '#ffffff');
-  root.style.setProperty('--text', '#1c1917');
-  root.style.setProperty('--muted', '#78716c');
-  root.style.setProperty('--border', 'rgba(28, 25, 23, 0.1)');
-  root.style.setProperty('--header-bg', 'rgba(255, 255, 255, 0.92)');
-  root.style.setProperty('--store-page-bg', '#f5f3f0');
+  root.style.setProperty('--text', '#0c1220');
+  root.style.setProperty('--muted', '#5b6577');
+  root.style.setProperty('--border', 'rgba(12, 18, 32, 0.1)');
+  root.style.setProperty('--header-bg', 'rgba(255, 255, 255, 0.86)');
+  root.style.setProperty('--store-page-bg', '#eef1f6');
   root.style.setProperty('--store-card-bg', '#ffffff');
-  root.style.setProperty('--store-elevated-shadow', '0 2px 16px rgba(28, 25, 23, 0.06)');
-  root.style.setProperty('--store-hover-shadow', '0 12px 32px rgba(28, 25, 23, 0.1)');
-  root.style.setProperty('--store-header-shadow', '0 1px 0 var(--border), 0 4px 24px rgba(28, 25, 23, 0.06)');
+  root.style.setProperty('--store-elevated-shadow', '0 4px 22px rgba(12, 18, 32, 0.08)');
+  root.style.setProperty('--store-hover-shadow', '0 16px 40px rgba(12, 18, 32, 0.14)');
+  root.style.setProperty('--store-header-shadow', '0 1px 0 var(--border), 0 8px 28px rgba(12, 18, 32, 0.06)');
 }
 
 export function applyProStoreTheme(business, scheme = SCHEME_LIGHT) {
