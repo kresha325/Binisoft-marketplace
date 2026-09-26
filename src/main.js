@@ -606,27 +606,27 @@ function updateShopPresentation(business) {
 }
 
 let SHOP_VIEWS = {
-  home: ['hero', 'offers', 'contests', 'job-openings', 'employees', 'shop-services', 'shop-products', 'about', 'contact'],
+  home: ['hero', 'about', 'shop-products', 'offers', 'shop-services', 'contests', 'job-openings', 'employees', 'gallery', 'contact'],
+  about: ['about'],
+  products: ['shop-products'],
   offers: ['offers'],
+  services: ['shop-services'],
   contests: ['contests'],
   jobs: ['job-openings'],
   team: ['employees'],
-  products: ['shop-products'],
-  services: ['shop-services'],
-  about: ['about'],
   gallery: ['gallery'],
   contact: ['contact'],
 };
 
 let SHOP_SECTION_IDS = [
   'hero',
+  'about',
+  'shop-products',
   'offers',
+  'shop-services',
   'contests',
   'job-openings',
   'employees',
-  'shop-services',
-  'shop-products',
-  'about',
   'gallery',
   'contact',
 ];

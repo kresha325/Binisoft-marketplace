@@ -187,7 +187,7 @@ const BOTTOM_NAV_SVG = {
 export function buildNavLinks(siteConfig) {
   const map = sectionMap(siteConfig);
   const links = [];
-  const sectionOrder = ['products', 'services', 'offers', 'contests', 'jobOpenings', 'employees', 'about', 'gallery', 'contact'];
+  const sectionOrder = ['about', 'products', 'services', 'offers', 'contests', 'jobOpenings', 'employees', 'gallery', 'contact'];
   const anySection = sectionOrder.some((id) => isEnabled(map, id));
   if (isEnabled(map, 'hero') || anySection) {
     links.push({ view: 'home', label: DEFAULT_NAV_LABELS.home, href: '#' });
@@ -246,11 +246,11 @@ function youtubeEmbedUrl(url) {
 export function buildShopViews(siteConfig) {
   const map = sectionMap(siteConfig);
   const home = [];
-  for (const id of ['hero', 'offers', 'contests', 'jobOpenings', 'employees', 'products', 'services', 'about', 'gallery', 'contact']) {
+  for (const id of ['hero', 'about', 'products', 'offers', 'services', 'contests', 'jobOpenings', 'employees', 'gallery', 'contact']) {
     if (isEnabled(map, id)) home.push(SECTION_DOM[id]);
   }
-  const views = { home: home.length ? home : ['hero', 'shop-products', 'contact'] };
-  for (const id of ['offers', 'contests', 'jobOpenings', 'employees', 'products', 'services', 'about', 'gallery', 'contact']) {
+  const views = { home: home.length ? home : ['hero', 'about', 'shop-products', 'contact'] };
+  for (const id of ['about', 'products', 'offers', 'services', 'contests', 'jobOpenings', 'employees', 'gallery', 'contact']) {
     if (isEnabled(map, id)) views[NAV_VIEW[id]] = [SECTION_DOM[id]];
   }
   return views;
