@@ -3474,9 +3474,11 @@ body.marketplace-theme--dark .market-search--hero .market-search__icon {
 
 .market-panel {
   min-height: 220px;
+  width: 100%;
   max-width: 1120px;
   margin: 22px auto 0;
   padding: 0 22px;
+  box-sizing: border-box;
   animation: marketPanelIn 0.45s ease both;
 }
 
@@ -3486,16 +3488,24 @@ body.marketplace-theme--dark .market-search--hero .market-search__icon {
   font-size: 1.02rem;
 }
 
-.market-grid {
+.market-grid,
+.business-grid.market-grid {
+  display: grid;
+  width: 100%;
   margin-top: 0;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 22px;
+  align-items: stretch;
 }
 
 .market-store-card {
+  display: flex;
+  flex-direction: column;
   align-items: stretch;
   text-align: left;
   padding: 0;
+  min-width: 0;
+  width: 100%;
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid var(--border);
