@@ -3308,7 +3308,8 @@ body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__brand {
 
 .market-search__icon {
   position: absolute;
-  left: 16px;
+  right: 16px;
+  left: auto;
   top: 50%;
   transform: translateY(-50%);
   color: #5b6577;
@@ -3319,6 +3320,7 @@ body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__brand {
 
 .market-search--hero .market-search__icon {
   color: #3d4654;
+  right: 18px;
 }
 
 .market-search--hero .market-search__icon svg {
@@ -3332,7 +3334,8 @@ body.marketplace-theme:not(.marketplace-theme--dark) .marketplace-hero__brand {
   color: #0c1220;
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
-  padding-left: 48px;
+  padding-left: 20px;
+  padding-right: 48px;
   border-radius: 999px;
   height: 52px;
   font-size: 0.98rem;
@@ -3357,7 +3360,7 @@ body.marketplace-theme--dark .market-search--hero .market-search__icon {
 
 .market-search input {
   width: 100%;
-  padding: 14px 18px;
+  padding: 14px 48px 14px 18px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -3369,6 +3372,10 @@ body.marketplace-theme--dark .market-search--hero .market-search__icon {
 .market-search input:focus {
   outline: 2px solid var(--yellow);
   border-color: transparent;
+}
+
+.market-search--hero input {
+  padding: 14px 48px 14px 20px;
 }
 
 /* ── Chrome: stats + tabs ── */
