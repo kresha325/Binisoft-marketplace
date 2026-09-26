@@ -29,8 +29,11 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  background: var(--navy);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background:
+    radial-gradient(ellipse 90% 60% at 10% -20%, rgba(46, 196, 198, 0.12), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(26, 43, 86, 0.45), transparent 45%),
+    var(--navy);
   color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -53,9 +56,10 @@ body.nav-open {
   top: 0;
   z-index: 50;
   background: var(--header-bg, var(--navy));
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--border);
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .header-inner {
